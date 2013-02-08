@@ -25,4 +25,24 @@ which helps people build locally or globally in the most effective way possible.
 
 BOMfu is made possible thanks to Mozilla Foundation and Eyebeam Art and Technology Center in NYC.
 
-More information is available at BOMfu.com 
+More information is available at www.BOMfu.com (no naked domains, yo)
+
+milestone updates (Feb 8, 2013)
+=====
+
+by end of Feb 1)  
+    - establishing simple fileformat is done
+    - bomfu.com/blog setting up to redirect documentation/rss the workflow wiki on Git 
+    - database is 70% there 
+    - GUI display of list + basic 3d project upload 
+    ( at this point there will be no logins or web based editing of BOMs)
+    - link organized on index organized by 2 columns (- most popular unlog - recently updated/acivity when logged in)  
+
+by end of May 2) 
+    - user accounts
+    - web based editing
+    - GUI development with list editing on web
+    - git hosted BOMfu files which can be embeded in websites
+
+by early July 3) 
+   - community features- such as comments, forking, rank list for alternative supplies which can be voted up/down, new feed for updates on homepage when logged in, 
