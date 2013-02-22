@@ -14,3 +14,13 @@ if "SERVER_SOFTWARE" in os.environ:
 else:
     from config.testing import config
 
+
+config['app_name'] = 'BOMfu'
+config['enable_federated_login'] = False
+
+# disable multi-language
+config['locales'] = []
+
+# get your own recaptcha keys by registering at http://www.google.com/recaptcha/
+config['captcha_public_key'] = "6Lf4Tt0SAAAAAHhMLHXVsR59thKDtBGPwiqdyHDY"
+config['captcha_private_key'] = "6Lf4Tt0SAAAAADNAt2A6dsLLJ6J-ITEGUfiQcOvt"
