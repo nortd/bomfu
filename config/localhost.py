@@ -5,4 +5,7 @@ config = {
 
 # ----> ADD MORE CONFIGURATION OPTIONS HERE <----
 
+# no error templates, show standard stack trace instead
+'error_templates' : {},
+
 }

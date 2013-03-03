@@ -1,4 +1,4 @@
-application: sandengine
+application: bomfu-hrd
 version: dev
 runtime: python27
 api_version: 1

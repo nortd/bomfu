@@ -21,6 +21,10 @@ config['enable_federated_login'] = False
 # disable multi-language
 config['locales'] = []
 
-# get your own recaptcha keys by registering at http://www.google.com/recaptcha/
+# recaptcha
 config['captcha_public_key'] = "6Lf4Tt0SAAAAAHhMLHXVsR59thKDtBGPwiqdyHDY"
 config['captcha_private_key'] = "6Lf4Tt0SAAAAADNAt2A6dsLLJ6J-ITEGUfiQcOvt"
+
+# google analytics
+config['google_analytics_domain'] = "bomfu.com"
+config['google_analytics_code'] = "UA-19608069-4"
