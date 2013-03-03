@@ -14,7 +14,6 @@
 #
 
 __author__  = 'Rodrigo Augosto (@coto)'
-__website__ = 'www.beecoss.com'
 
 import os, sys
 # Third party libraries path must be fixed before importing webapp2
@@ -32,7 +31,7 @@ from boilerplate.lib.basehandler import handle_error
 webapp2_config = boilerplate_config.config
 webapp2_config.update(config.config)
 
-app = webapp2.WSGIApplication(debug = os.environ['SERVER_SOFTWARE'].startswith('Dev'), config=webapp2_config)
+app = webapp2.WSGIApplication(debug=os.environ['SERVER_SOFTWARE'].startswith('Dev'), config=webapp2_config)
 
 for status_int in app.config['error_templates']:
     app.error_handlers[status_int] = handle_error

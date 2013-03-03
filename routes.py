@@ -10,6 +10,8 @@ secure_scheme = 'https'
 
 _routes = [
     RedirectRoute('/secure/', handlers.SecureRequestHandler, name='secure', strict_slash=True),
+    RedirectRoute('/bom/<bom_id>', handlers.BomBuildViewHandler, name='bom_build', strict_slash=True),
+    RedirectRoute('/bom/<bom_id>/order', handlers.BomOrderViewHandler, name='bom_order', strict_slash=True),
 ]
 
 def get_routes():

@@ -39,3 +39,32 @@ class SecureRequestHandler(BaseHandler):
             return self.render_template('secure_zone.html', **params)
         except (AttributeError, KeyError), e:
             return "Secure zone error:" + " %s." % e
+
+
+class BomBuildViewHandler(BaseHandler):
+    """
+    Handler for public BOMs in build view, by subsystem.
+    """
+
+
+    def get(self, bom_id):
+        import lasersaur_bomfu
+        import bomfu_parser
+        # print lasersaur_bomfu.bom
+        params = {
+            "bom_id" : bom_id,
+            "bom_json" : bomfu_parser.bomfu_to_json(lasersaur_bomfu.bom)
+            }
+        return self.render_template('bom_build_view.html', **params)
+
+
+class BomOrderViewHandler(BaseHandler):
+    """
+    Handler for public BOMs in order view, by supplier.
+    """
+
+    def get(self, bom_id):
+        params = {
+            "bom_id" : bom_id
+            }
+        return self.render_template('bom_order_view.html', **params)
