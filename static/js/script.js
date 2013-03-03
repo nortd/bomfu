@@ -1,3 +1,1 @@
-
-
-/** Put here your Scripts **/
+// where you put your JS custom

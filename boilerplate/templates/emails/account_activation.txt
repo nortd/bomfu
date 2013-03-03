@@ -1,8 +1,9 @@
 <p>Hello <strong>{{username}}</strong>,</p>
 
 <p>
-You just have registered in {{ app_name }} as @{{username}}. In order to activate your account,
-please verify your email by clicking this link:
+Sweetness... ! 
+Welcome to {{ app_name }} as @{{username}}. In order to activate your account,
+please verify yourself by clicking this link:
 </p>
 
 {{confirmation_url}}

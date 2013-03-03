@@ -6,16 +6,6 @@
 
     {% if user_id %}
     <div class="hero-unit home_bp">
-        <h1>
-            Google App Engine Boilerplate
-        </h1>
-        <p>
-            {% trans %}Congratulations on your Google App Engine Boilerplate powered page.{% endtrans %}
-            <br><a href="http://github.com/coto/gae-boilerplate/blob/master/README.md" target="_blank">
-            {% trans %}Learn why this Boilerplate Rocks{% endtrans %}</a> {% trans %}or just{% endtrans %} 
-            <a href="http://github.com/coto/gae-boilerplate/" target="_blank">{% trans %}download the Source Code{% endtrans %}</a> 
-            {% trans %}to help you to create your application.{% endtrans %}
-        </p>
     </div>
     {% else %}
     <div class="row">
@@ -58,8 +48,6 @@
                     {{ macros.federated_login(provider_info, provider_uris, enable_federated_login) }}
                 </fieldset>
             </form>
-
-            <h3>{% trans %}Sign Up{% endtrans %}</h3>
             <form id="form_register" action="{{ uri_for("register") }}" method="post">
                 <fieldset class="well">
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
