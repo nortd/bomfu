@@ -26,3 +26,16 @@ which helps people build locally or globally in the most effective way possible.
 BOMfu is made possible thanks to Mozilla Foundation and Eyebeam Art and Technology Center in NYC.
 
 www.BOMfu.com (no naked domains, yo) soon, ALL dev development is on our git wiki.. 
+
+
+Colors
+-------
+- @linkColor: #27717F (links, primary-button)
+- @blue: 205D69
+- @green: 968600
+- @successText: 968600 (alert-success, label-success)
+- @red: BA1600
+- @errorText: BA1600 (alert-error, label-error)
+- @navbarBackground: #4A434F
+- @navbarBackgroundHighlight: #4A434F
+- @infoText: #DB0061 (alert-info)

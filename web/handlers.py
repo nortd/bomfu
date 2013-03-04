@@ -68,3 +68,14 @@ class BomOrderViewHandler(BaseHandler):
             "bom_id" : bom_id
             }
         return self.render_template('bom_order_view.html', **params)
+
+
+
+class TestAllUIHandler(BaseHandler):
+    """
+    Handler for testing all bootstrap UI widgets.
+    """
+
+    def get(self):
+        params = {}
+        return self.render_template('test_all_ui.html', **params)
