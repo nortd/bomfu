@@ -1,0 +1,172 @@
+{% extends base_layout %}
+
+{% block header_title %}
+    {% trans %}BOM Build View{% endtrans %}
+{% endblock %}
+
+{% block content %}
+    
+    <link rel="stylesheet" type="text/css" media="screen" href="/lasersaur/css/style.css">
+
+    <div class="alert">
+        <button class="close" data-dismiss="alert">×</button>
+        <strong>Warning!</strong> This is BOM subsystem page.
+    </div>
+
+    <table>
+        <tr>
+        <td>
+            Mobile:
+            <span class="label {% if is_mobile %}label-success{% endif %}">{{ is_mobile }}</span>
+        </td>
+        </tr>
+        <tr>
+        <td>
+            Bom ID:
+            <span class="label label-info">{{ bom_id }}</span>
+        </td>
+        </tr>
+    </table>
+
+
+{% for subsystem in subsystems %}
+    <h2>{{ subsystem }}</h2>
+    <table>
+        <tr>
+            <th style="width:10px">#</th>
+            <th style="width:250px">item</th>
+            <th style="width:250px">specific use</th>
+            <th style="width:100px">supplier#</th>
+            <th style="width:180px">order#</th> 
+            <th style="width:40px">price</th>    
+            <th style="width:40px">total</th>
+        </tr>
+    {% for part in bom_old[subsystem] %}
+        <tr>
+        {% for item in part %}
+            <td>
+            {{item}}
+            </td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    <tr>
+        <td  class="last" style="text-align:right">{{ num_items_by_subsystem[subsystem] }}</td><td class="last">items</td><td class="last"></td><td class="last"></td><td class="last"></td><td class="last" style="text-align:right">{{ currency }}</td><td class="last" style="text-align:right">{{ totals_by_subsystem[subsystem] }}</td>
+    </tr>'
+    </table>
+{% endfor %}
+
+<pre>
+    {{ bom }}
+</pre>
+
+
+<div id="fillincontent">
+    <strong style="font-size:20px">
+    If you see this text you are not getting the right content. Reload and if that does not help 
+    make sure you are using a modern browser with Javascript enabled.
+    </strong>
+    <div id="supplier">
+        <div id="supplier-main">
+        </div>
+        <div id="NortdLabs">
+            A limited number of parts are custom. For convenience we offer them here.
+            Job files for laser cutting and PCB fabrication are available as part of our 
+            beta access and will be fully open sourced. For convinience we also offer <a href="/lasersaur/store#la-dba">fully assembled DriveBoards</a> in the Lasersaur Store. Also, alternative suppliers for consumables (mirrors, lenses, etc) are listed on the <a href="/lasersaur/manual/operation">Operation Page</a>
+        </div>              
+        <div id="Misumi">
+            <a href="http://www.misumi-ec.com/">Misumi</a> is an international supplier of
+            automation components. Hint: You can copy&paste the CSVs from the bottom of this 
+            list directly into the Misumi order page. Hint2: In some countries they require a company account. 
+            If you are not purchasing through a company they usually accept the company field be "N/A or student".
+        </div>              
+        <div id="Westfield">
+            <a href="http://www.westfieldfasteners.co.uk/">Westfield Fasteners</a> ships worldwide and offers 
+            sliding quantity discounts which is great for a project like this. Alternatively you might want to check out 
+            <a href="http://www.screwsandmore.de/">Screws & More</a> and 
+            <a href="http://shop.schraubenluchs.de/">Schrauben Luchs</a>. Be sure to order a bit more than strictly needed.
+        </div>      
+        <div id="ThorLabs">
+            <a href="http://thorlabs.com">ThorLabs</a> is an international supplier of optical components. 
+            All the mirrors, lenses and optical mounts come from them. FYI:
+            <a href="http://www.thorlabs.de/search/thorsearch.cfm?search=LG6">Laser safty glasses</a>
+            are part of the list.
+        </div>              
+        <div id="Mouser">
+            <a href="http://mouser.com">Mouser</a> is an international supplier of electrical components. 
+        </div>          
+        <div id="ColeTech">
+            <a href="http://www.cncoletech.com/">ColeTech</a> is an affordable and reliable supplier of laser tubes and 
+            accessories from China. Apart from requesting a quote
+            by email they also have an <a href="http://stores.ebay.com/CNCOLETECH">ebay store</a>. Most of the time
+            they also offer laser + power supply packages. Make sure you specify the correct AC voltage (220V or 110V) and mirror size (25mm) when ordering. NOTE: Laser tubes are very fragile and do arrive broken occasionally. 
+            Before signing  the package check for noises of broken parts, reject, and let Coletech know if this is the case.
+        </div>              
+        <div id="GeckoDrive">
+            <a href="http://www.geckodrive.com/">GeckoDrive</a> produces a very nice range of stepper
+            drivers and also ships them worldwide. Budget Tip: In the US 
+            <a href="http://www.hubbardcnc.com/index.php?main_page=product_info&cPath=3_36_50&products_id=80">Hubbard CNC Inc</a> has
+            very good Gecko driver deals. Budget Tip 2: You can also go with the cheaper G201X drivers. Just know they don't have any protection circuitry and are easier to damage.
+        </div>              
+        <div id="Nanotec">
+            <a href="http://en.nanotec.com">Nanotec</a> ships worldwide. When ordering through their
+            online store make sure to specify the rear-shaft option.
+        </div>  
+        <div id="LinEngineering">
+            <a href="http://www.linengineering.com/">Lin Engineering</a> ships worldwide and has very short lead times for the US. 
+            Make sure you specify the rear-shaft option.
+        </div>                                  
+        <div id="ebay">
+            Shielded patch cables can be sourced from many places. They need to be shielded and have at least 26 AWG (most do). The solenoid air valve can also be found cheaply on ebay. Alternatively you can find an appropriate item at <a href="http://www.automationdirect.com">Automation Direct</a> and <a href="https://www.landefeld.de/artikel/en/32-way-solenoid-valve-m-5-closed-nc-24-v-/MS+20310+24V%3d">Landefeld</a>. The BOM includes tube (6mm) couplings for M5 threads. If you order a solenoid valve with a different thread make sure to also get appropriate couplings.  
+        </div>      
+    </div>
+    <div id="subsystem">
+        <div id="subsystem-main">   
+        </div>
+        <div id="frame-gantry">
+            <img src="http://farm8.staticflickr.com/7038/6793462726_83109b3634_z.jpg">
+        </div>          
+        <div id="frame-door">
+            <img src="http://farm8.staticflickr.com/7075/7138412223_df5102ed6f_z.jpg">
+        </div>          
+        <div id="frame-outer">
+            <img src="http://farm9.staticflickr.com/8015/7335050992_18ec3b214b_z.jpg">
+        </div>          
+        <div id="frame-table">
+            <img src="http://farm8.staticflickr.com/7087/7340887152_09e7eb9394_z.jpg">
+        </div>          
+        <div id="frame-panels">
+            <img src="http://farm8.staticflickr.com/7058/6906452935_b5a2a8dc11_z.jpg">
+        </div>          
+        <div id="y-cart">
+            <img src="http://farm8.staticflickr.com/7047/6939597291_8c6dd94305_z.jpg">
+        </div>          
+        <div id="y-drive">
+            <img src="http://farm8.staticflickr.com/7044/6939597227_45a923993c_z.jpg">
+        </div>          
+        <div id="x-cart">
+            <img src="http://farm8.staticflickr.com/7181/6793485136_0177cbde72_z.jpg">
+        </div>          
+        <div id="x-drive">
+            <img src="http://farm8.staticflickr.com/7201/6939597335_ba0a9b768d_z.jpg">
+        </div>          
+        <div id="optics-laser">
+            <img src="http://farm8.staticflickr.com/7208/6906453391_df5ea13f58_z.jpg">
+        </div>          
+        <div id="electronics">
+            <img src="http://farm8.staticflickr.com/7068/6906453559_995c997772_z.jpg">
+        </div>          
+        <div id="air-assist">
+        </div>          
+        <div id="extra">
+        </div>          
+    </div>
+</div>
+
+<pre>
+    {{bom_json}}
+</pre>
+
+
+
+{% endblock %}

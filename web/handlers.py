@@ -8,6 +8,7 @@
 
     Routes are setup in routes.py and added in main.py
 """
+import json
 import httpagentparser
 from boilerplate import models
 from boilerplate.lib.basehandler import BaseHandler
@@ -48,12 +49,35 @@ class BomBuildViewHandler(BaseHandler):
 
 
     def get(self, bom_id):
-        import lasersaur_bomfu
+        import lasersaur_bomfu_old
         import bomfu_parser
-        # print lasersaur_bomfu.bom
+
+        currency = 'EUR'
+        bomfu_json_old = bomfu_parser.bomfu_to_json_old(lasersaur_bomfu_old.bom)
+        by_subsystem_json = bomfu_parser.sort_by_subsystem(bomfu_json_old, currency)
+        bomfu_json = bomfu_parser.convert_old_to_new(bomfu_json_old)
+
+        # calculate totals
+        totals_by_subsystem = {}
+        num_items_by_subsystem = {}
+        for subsystem in by_subsystem_json:
+            total = 0.0
+            num_items_by_subsystem[subsystem] = len(by_subsystem_json[subsystem])
+            for part in by_subsystem_json[subsystem]:
+                total += part[6]
+            totals_by_subsystem[subsystem] = total
+
         params = {
             "bom_id" : bom_id,
-            "bom_json" : bomfu_parser.bomfu_to_json(lasersaur_bomfu.bom)
+            # "bom_json" : json.dumps(by_subsystem_json, indent=2, sort_keys=True)
+            "currency": currency,
+            "bom_old" : by_subsystem_json,
+            "subsystems": ['frame-gantry','frame-table','frame-outer',
+                          'frame-door','y-cart','y-drive', 'x-cart','x-drive','electronics',
+                          'optics-laser','frame-panels','air-assist', 'extraction', 'extra'],
+            "num_items_by_subsystem": num_items_by_subsystem,
+            "totals_by_subsystem": totals_by_subsystem,
+            "bom": bomfu_json
             }
         return self.render_template('bom_build_view.html', **params)
 
@@ -68,6 +92,41 @@ class BomOrderViewHandler(BaseHandler):
             "bom_id" : bom_id
             }
         return self.render_template('bom_order_view.html', **params)
+
+
+
+class ConvertBomHandler(BaseHandler):
+    """
+    Converts legacy lasersaur boms to bomfu.
+    """
+    def get(self):
+        from bomfu_parser_legacy import get_new_from_legacy
+        import bomfu_parser
+
+        bom_file = get_new_from_legacy()
+        bom_by_subsystem = bomfu_parser.parse(bom_file)
+
+        # # calculate totals
+        # totals_by_subsystem = {}
+        # num_items_by_subsystem = {}
+        # for subsystem in bom_by_subsystem:
+        #     total = 0.0
+        #     num_items_by_subsystem[subsystem] = len(bom_by_subsystem[subsystem])
+        #     for part in bom_by_subsystem[subsystem]:
+        #         total += part[6]
+        #     totals_by_subsystem[subsystem] = total
+
+        params = {
+            # "bom": bomfu_parser.parse(bom_old)
+            "subsystems": ['frame-gantry','frame-table','frame-outer',
+                          'frame-door','y-cart','y-drive', 'x-cart','x-drive','electronics',
+                          'optics-laser','frame-panels','air-assist', 'extra'],
+            "num_items_by_subsystem": 0,
+            "totals_by_subsystem": 0,
+            "bom": bomfu_parser.sort_by_subsystem(bom_by_subsystem, 'EUR'),
+            # "bom_file": bom_file
+            }
+        return self.render_template('convert_bom.html', **params)
 
 
 

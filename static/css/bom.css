@@ -1,0 +1,50 @@
+
+table.data {width:870px;}
+table.data tr td {padding-left:6px; padding-right:6px;}
+table.data tr td.odd {padding-left:6px; padding-right:6px;}
+table.data tr td.even {background-color:#f3f3f3;}
+table.data tr th {border-bottom:solid 1px #000000;}
+table.data tr td.last {padding-top:10px; border-top:solid 1px #000000;}
+div.toggle {display:none; position:absolute; max-width:400px; left:0px; top:20px; background-color:#ffffff; border: 1px solid  #000000; padding:10px;}
+div.csv {margin-top:10px; margin-bottom:60px;}
+.frame-gantry {color:#83bbff}
+.frame-table {color:#443858}
+.frame-outer {color:#546883}
+.frame-door {color:#828ca3}
+.frame-panels {color:#431424}
+.optics-laser {color:#b9d551}
+.electronics {color:#ccb17f}
+.air-assist {color:#a3b693}
+.extraction {color:#a8968b}
+.x-cart {color:#9e4301}
+.x-drive {color:#bc652e}
+.y-cart {color:#650b01}
+.y-drive {color:#b72e22}
+
+div.frame-gantry {width:10px; height:10px; background-color:#83bbff; color:#ffffff;}
+div.frame-table {width:10px; height:10px; background-color:#443858; color:#ffffff;}
+div.frame-outer {width:10px; height:10px; background-color:#546883; color:#ffffff;}
+div.frame-door {width:10px; height:10px; background-color:#828ca3; color:#ffffff;}
+div.frame-panels {width:10px; height:10px; background-color:#431424; color:#ffffff;}
+div.optics-laser {width:10px; height:10px; background-color:#b9d551; color:#ffffff;}
+div.electronics {width:10px; height:10px; background-color:#ccb17f; color:#ffffff;}
+div.air-assist {width:10px; height:10px; background-color:#a3b693; color:#ffffff;}
+div.extraction {width:10px; height:10px; background-color:#a8968b; color:#ffffff;}
+div.x-cart {width:10px; height:10px; background-color:#9e4301; color:#ffffff;}
+div.x-drive {width:10px; height:10px; background-color:#bc652e; color:#ffffff;}
+div.y-cart {width:10px; height:10px; background-color:#650b01; color:#ffffff;}
+div.y-drive {width:10px; height:10px; background-color:#b72e22; color:#ffffff;}
+
+span.frame-gantry {width:10px; height:10px; background-color:#83bbff; color:#ffffff;}
+span.frame-table {width:10px; height:10px; background-color:#443858; color:#ffffff;}
+span.frame-outer {width:10px; height:10px; background-color:#546883; color:#ffffff;}
+span.frame-door {width:10px; height:10px; background-color:#828ca3; color:#ffffff;}
+span.frame-panels {width:10px; height:10px; background-color:#431424; color:#ffffff;}
+span.optics-laser {width:10px; height:10px; background-color:#b9d551; color:#ffffff;}
+span.electronics {width:10px; height:10px; background-color:#ccb17f; color:#ffffff;}
+span.air-assist {width:10px; height:10px; background-color:#a3b693; color:#ffffff;}
+span.extraction {width:10px; height:10px; background-color:#a8968b; color:#ffffff;}
+span.x-cart {width:10px; height:10px; background-color:#9e4301; color:#ffffff;}
+span.x-drive {width:10px; height:10px; background-color:#bc652e; color:#ffffff;}
+span.y-cart {width:10px; height:10px; background-color:#650b01; color:#ffffff;}
+span.y-drive {width:10px; height:10px; background-color:#b72e22; color:#ffffff;}

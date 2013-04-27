@@ -12,6 +12,7 @@ _routes = [
     RedirectRoute('/secure/', handlers.SecureRequestHandler, name='secure', strict_slash=True),
     RedirectRoute('/bom/<bom_id>', handlers.BomBuildViewHandler, name='bom_build', strict_slash=True),
     RedirectRoute('/bom/<bom_id>/order', handlers.BomOrderViewHandler, name='bom_order', strict_slash=True),
+    RedirectRoute('/_convert_bom', handlers.ConvertBomHandler, name='convert_bom', strict_slash=True),
     RedirectRoute('/_test_all_ui', handlers.TestAllUIHandler, name='test_all_ui', strict_slash=True),
 ]
 

@@ -1,0 +1,64 @@
+{% extends base_layout %}
+
+{% block header_title %}
+    {% trans %}Convert BOM{% endtrans %}
+{% endblock %}
+
+{% block content %}
+    
+<link rel="stylesheet" type="text/css" media="screen" href="/lasersaur/css/style.css">
+
+
+<!--
+    # sort by subsystem
+    # {subsystem: [ part_name, part_group,
+    #               [[supplier_name, order_num, package_count, package_units, currency, country, amount, explicit_url]], 
+    #               {subsystem: [quantity, specific_use], subsystem_: [..], ...} ]
+ -->
+
+{% for subsystem in bom %}
+    <h2>{{ subsystem }}</h2>
+    <table>
+        <tr>
+            <th style="width:10px">#</th>
+            <th style="width:250px">item</th>
+            <th style="width:250px">specific use</th>
+            <th style="width:100px">supplier</th>
+            <th style="width:180px">order#</th> 
+            <th style="width:40px">price</th>    
+            <th style="width:40px">total</th>
+        </tr>
+    {% for part in bom[subsystem] %}
+        <tr>
+            <td>
+            {{ part[3][subsystem][0] }}
+            </td>
+            <td>
+            {{ part[0] }}
+            </td>
+            <td>
+            {{ part[3][subsystem][1] }}
+            </td>
+            <td>
+            {{ part[2][0][0] }}
+            </td>
+            <td>
+            {{ part[2][0][1] }}
+            </td>
+            <td>
+            {{ part[2][0][6] }}
+            </td>
+            <td>
+            N/A
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endfor %}
+
+<!-- <pre>
+    {{ bom_file }}
+</pre> -->
+
+
+{% endblock %}
