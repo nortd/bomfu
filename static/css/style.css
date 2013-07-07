@@ -1,1 +1,11 @@
 .home_bp{background:transparent url(../img/tardifu.png) top center no-repeat;padding-top:20em;text-align:center}.home_bp h1{font-size:1.6em}.home_bp p{font-size:1.2em}
+
+
+
+.navbar-textured {
+    background-image: url(../img/dark_fish_skin.png);
+    border-radius:0;
+    background-color: rgb(67, 57, 57);
+    background-repeat: repeat;
+    border-width: 0;
+}

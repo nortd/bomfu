@@ -53,14 +53,17 @@
     <div id="page">
         {% block navbar %}
         <div class="navbar navbar-fixed-top">
-            <div class="navbar-inner">
+            <div class="navbar-inner navbar-textured">
                 <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
                     <span class="icon-chevron-down icon"></span>
                 </button>
                 <a class="brand" href="/">{{ app_name }}</a>
                 <div class="nav-collapse">
                     <ul class="nav pull-right">
-                        <li><a href="https://github.com/coto/gae-boilerplate" target="_blank"><span class="icon-inbox" ></span> {% trans %}Source Code{% endtrans %}</a></li>
+                        <li><a href="/browse">Browse</a></li>
+                        <li><a href="/create">Create</a></li>
+                        <li><a href="/help">Help</a></li>
+                        <li><a href="/login">Login</a></li>                        
                         {% if locale_iso %}
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -132,24 +135,6 @@
             <header class="navbar" id="overview">
                 {% block header_title_lead %}
                 <h1>{% block header_title %}{{ app_name }}{% endblock %}</h1>
-                <p class="lead">
-		            {% trans %}Congratulations on your Google App Engine Boilerplate powered page.{% endtrans %}
-		            <br><a href="http://github.com/coto/gae-boilerplate/blob/master/README.rdoc" target="_blank">
-		            {% trans %}Learn why this Boilerplate Rocks{% endtrans %}</a> {% trans %}or just{% endtrans %} 
-		            <a href="http://github.com/coto/gae-boilerplate/" target="_blank">{% trans %}download the Source Code{% endtrans %}</a> 
-		            {% trans %}to help you to create your application.{% endtrans %}
-				</p>
-                {% endblock %}
-                {% block subnavbar %}
-                <div class="subnav">
-                    <ul>
-                        <li{% if path == uri_for("contact") %} class="active"{% endif %}><a href="{{ uri_for("contact") }}">{% trans %}Contact{% endtrans %}</a></li>
-                        {% if not user_id %}
-                        <li{% if path == uri_for("register") %} class="active"{% endif %}><a href="{{ uri_for("register") }}">{% trans %}Sign Up{% endtrans %}</a></li>
-                        <li{% if path == uri_for("password-reset") %} class="active"{% endif %}><a href="{{ uri_for("password-reset") }}">{% trans %}Forgot your password?{% endtrans %}</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
                 {% endblock %}
             </header>
             {% endblock %}
@@ -166,7 +151,29 @@
 
             {% block footer %}
             <footer>
-                {% trans %}Google App Engine Boilerplate is released under the{% endtrans %} <a href="http://www.gnu.org/licenses/gpl-3.0.html" target="_blank">LGPL</a>
+                <hr>
+                <p class="muted credit">BOMfu by <a href="http://labs.nortd.com">Nortd Labs</a>
+                <ul>
+                    <li{% if path == uri_for("contact") %} class="active"{% endif %}><a href="{{ uri_for("contact") }}">{% trans %}Contact{% endtrans %}</a></li>
+                    {% if not user_id %}
+                    <li><a href="/login/">login</a></li>
+                    <li{% if path == uri_for("register") %} class="active"{% endif %}><a href="{{ uri_for("register") }}">{% trans %}Sign Up{% endtrans %}</a></li>
+                    <li{% if path == uri_for("password-reset") %} class="active"{% endif %}><a href="{{ uri_for("password-reset") }}">{% trans %}Forgot your password?{% endtrans %}</a></li>
+                    {% endif %}
+                    <li><a href="/settings/profile">profile</a></li>
+                    <li><a href="/settings/password">password</a></li>
+                    <li><a href="/settings/email">email</a></li>
+                    <li><a href="/logout/">logout</a></li>
+                </ul>
+                <ul>
+                    <li><a href="/admin/users/">admin/users</a></li>
+                    <li><a href="/admin/geochart/">admin/geochart</a></li>
+                    <li><a href="/admin/logout/">admin/logout</a></li>
+                </ul>
+                <ul>
+                    <li><a href="/_ah/admin/">admin/datastore</a></li>
+                    <li><a href="/_ah/stats/">admin/stats</a></li>
+                </ul>
             </footer>
             {% endblock %}
         </div><!-- /content -->

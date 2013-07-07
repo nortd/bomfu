@@ -30,6 +30,7 @@ skip_files:
 builtins:
 - appstats: on #/_ah/stats/
 - remote_api: on #/_ah/remote_api/
+# dev console is at /_ah/admin/
 
 handlers:
 - url: /admin/.*

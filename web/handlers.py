@@ -15,31 +15,44 @@ from boilerplate.lib.basehandler import BaseHandler
 from boilerplate.lib.basehandler import user_required
 
 
-class SecureRequestHandler(BaseHandler):
-    """
-    Only accessible to users that are logged in
-    """
 
-    @user_required
-    def get(self, **kwargs):
-        user_session = self.user
-        user_session_object = self.auth.store.get_session(self.request)
+class BomCreateHandler(BaseHandler):
+    """Handler to create new BOMs."""
 
-        user_info = models.User.get_by_id(long( self.user_id ))
-        user_info_object = self.auth.store.user_model.get_by_auth_token(
-            user_session['user_id'], user_session['token'])
+    def get(self):
+        params = {
+            # "bom_id" : bom_id
+            }
+        return self.render_template('bom_create.html', **params)
 
-        try:
-            params = {
-                "user_session" : user_session,
-                "user_session_object" : user_session_object,
-                "user_info" : user_info,
-                "user_info_object" : user_info_object,
-                "userinfo_logout-url" : self.auth_config['logout_url'],
-                }
-            return self.render_template('secure_zone.html', **params)
-        except (AttributeError, KeyError), e:
-            return "Secure zone error:" + " %s." % e
+
+
+class BomImportHandler(BaseHandler):
+    """Handler to import BOM from .bomfu file."""
+
+    def get(self):
+        params = {
+            # "bom_id" : bom_id
+            }
+        return self.render_template('bom_import.html', **params)
+
+
+    def post(self):
+        new_bom = models.Bom.new()
+        new_bom.name = "aBom-" + str(new_bom.public_id)
+        new_bom.put()
+        self.redirect(new_bom.get_url())
+
+
+class BomsHandler(BaseHandler):
+    """Show all BOMs."""
+
+    def get(self):
+        params = {
+            # "bom_id" : bom_id
+            }
+        return self.render_template('bom_import.html', **params)
+
 
 
 class BomBuildViewHandler(BaseHandler):
@@ -127,6 +140,34 @@ class ConvertBomHandler(BaseHandler):
             # "bom_file": bom_file
             }
         return self.render_template('convert_bom.html', **params)
+
+
+
+class SecureRequestHandler(BaseHandler):
+    """
+    Only accessible to users that are logged in
+    """
+
+    @user_required
+    def get(self, **kwargs):
+        user_session = self.user
+        user_session_object = self.auth.store.get_session(self.request)
+
+        user_info = models.User.get_by_id(long( self.user_id ))
+        user_info_object = self.auth.store.user_model.get_by_auth_token(
+            user_session['user_id'], user_session['token'])
+
+        try:
+            params = {
+                "user_session" : user_session,
+                "user_session_object" : user_session_object,
+                "user_info" : user_info,
+                "user_info_object" : user_info_object,
+                "userinfo_logout-url" : self.auth_config['logout_url'],
+                }
+            return self.render_template('secure_zone.html', **params)
+        except (AttributeError, KeyError), e:
+            return "Secure zone error:" + " %s." % e
 
 
 

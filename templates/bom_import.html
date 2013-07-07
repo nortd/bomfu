@@ -1,0 +1,17 @@
+{% extends base_layout %}
+
+{% block header_title %}
+    {% trans %}Import BOM{% endtrans %}
+{% endblock %}
+
+{% block content %}
+
+<form method="post" action="/import">
+	<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+	<textarea rows="20" class="span12"></textarea>
+	<button class="btn btn-large btn-primary" type="submit">Import</button>
+	<button class="btn btn-large" type="button">Old-school Import</button>
+	<button class="btn btn-large" type="button">Cancel</button>
+</form>
+
+{% endblock %}
