@@ -10,9 +10,11 @@
 """
 import json
 import httpagentparser
-from boilerplate import models
+from boilerplate.models import User
 from boilerplate.lib.basehandler import BaseHandler
 from boilerplate.lib.basehandler import user_required
+
+from web.models import Bom
 
 
 
@@ -38,10 +40,11 @@ class BomImportHandler(BaseHandler):
 
 
     def post(self):
-        new_bom = models.Bom.new()
+        new_bom = Bom.new()
         new_bom.name = "aBom-" + str(new_bom.public_id)
         new_bom.put()
         self.redirect(new_bom.get_url())
+        self.redirect(self.uri_for('bom_build', public_id=new_bom.public_id))
 
 
 class BomsHandler(BaseHandler):
@@ -61,7 +64,7 @@ class BomBuildViewHandler(BaseHandler):
     """
 
 
-    def get(self, bom_id):
+    def get(self, public_id):
         import lasersaur_bomfu_old
         import bomfu_parser
 
@@ -81,7 +84,7 @@ class BomBuildViewHandler(BaseHandler):
             totals_by_subsystem[subsystem] = total
 
         params = {
-            "bom_id" : bom_id,
+            "public_id" : public_id,
             # "bom_json" : json.dumps(by_subsystem_json, indent=2, sort_keys=True)
             "currency": currency,
             "bom_old" : by_subsystem_json,
@@ -100,9 +103,9 @@ class BomOrderViewHandler(BaseHandler):
     Handler for public BOMs in order view, by supplier.
     """
 
-    def get(self, bom_id):
+    def get(self, public_id):
         params = {
-            "bom_id" : bom_id
+            "public_id" : public_id
             }
         return self.render_template('bom_order_view.html', **params)
 
@@ -153,7 +156,7 @@ class SecureRequestHandler(BaseHandler):
         user_session = self.user
         user_session_object = self.auth.store.get_session(self.request)
 
-        user_info = models.User.get_by_id(long( self.user_id ))
+        user_info = User.get_by_id(long( self.user_id ))
         user_info_object = self.auth.store.user_model.get_by_auth_token(
             user_session['user_id'], user_session['token'])
 

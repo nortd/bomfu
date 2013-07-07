@@ -1,4 +1,4 @@
-{% extends base_layout %}
+{% extends 'admin/base.html' %}
 
 {% block header_title %}
     {% trans %}BOMs{% endtrans %}
@@ -13,7 +13,7 @@
         <input type="text" name="q" value="{{ q or '' }}" class="input-medium search-query" placeholder="{{ _('Search Bom') }}"></input>
         <button type="submit" title="Search"><i class="icon-search"></i></button>
         {% if q %}
-        <a href="{{ uri_for('boms') }}" class="clear">×</a>
+        <a href="{{ uri_for('boms-admin') }}" class="clear">×</a>
         {% endif %}
     </form>
     </div>
@@ -27,31 +27,24 @@
                 {{ name }}
             </th>
             {% endfor %}
+            <th class="span1">&nbsp;</th>
         </tr>
     </thead>
     {% for bom in boms %}
     <tr>
         <td>
-            <a class="icon" href=""><i class="icon-pencil"></i></a>
+            <a class="icon" href="{{ uri_for('bom-admin-edit', bom_id=bom.key.id()) }}"><i class="icon-pencil"></i></a>
         </td>
         {% for attr, name in list_columns %}
         <td>
             {{ getattr(bom, attr) }}
         </td>
         {% endfor %}
+        <td>
+            <a class="icon" href="/admin/bom/delete/{{ bom.key.urlsafe() }}"><i class="icon-trash"></i></a>
+        </td>
     </tr>
     {% endfor %}
 </table>
-<ul class="pager">
-  {% if prev_cursor %}
-  <li><a href="{{ pager_url('prev', prev_cursor) }}">Previous</a></li>
-  {% else %}
-  <li class='disabled'><span>Previous</span></li>
-  {% endif %}
-  {% if next_cursor %}
-  <li><a href="{{ pager_url('next', next_cursor) }}">Next</a></li>
-  {% else %}
-  <li class='disabled'><span>Next</span></li>
-  {% endif %}
-</ul>
+{{ lib.render_pager() }}
 {% endblock %}

@@ -1,12 +1,7 @@
 
-import uuid
-import datetime
-from webapp2_extras.appengine.auth.models import User
-from google.appengine.ext import db
 from google.appengine.ext import ndb
+from webapp2_extras.appengine.auth.models import User
 
-from google.appengine.ext import blobstore
-from google.appengine.api.images import get_serving_url
 
 
 class User(User):
@@ -37,6 +32,10 @@ class User(User):
     country = ndb.StringProperty()
     #: Account activation verifies email
     activated = ndb.BooleanProperty(default=False)
+    #
+    uuid = ndb.StringProperty()
+    #
+    currency = ndb.StringProperty()
     
     @classmethod
     def get_by_email(cls, email):
@@ -83,11 +82,13 @@ class User(User):
         return result
 
 
+
 class LogVisit(ndb.Model):
     user = ndb.KeyProperty(kind=User)
     uastring = ndb.StringProperty()
     ip = ndb.StringProperty()
     timestamp = ndb.StringProperty()
+
 
 
 class LogEmail(ndb.Model):
@@ -99,6 +100,7 @@ class LogEmail(ndb.Model):
         required=True)
     body = ndb.TextProperty()
     when = ndb.DateTimeProperty()
+
 
 
 class SocialUser(ndb.Model):
@@ -155,148 +157,5 @@ class SocialUser(ndb.Model):
     @staticmethod
     def open_id_providers():
         return [k for k,v in SocialUser.PROVIDERS_INFO.items() if v['uri']]
-
-
-
-
-
-class PublicBomIdCounter(db.Model):
-  bomid = db.IntegerProperty()
-  
-  @classmethod 
-  def getNextId(cls):
-    ret = 10001;
-    counter = PublicBomIdCounter.all().get()
-    if counter:
-       ret = counter.bomid = counter.bomid + 1
-       counter.put()
-    else:
-      PublicBomIdCounter(
-        bomid = 10001,
-      ).put()
-    return ret
-
-
-
-# class User(db.Model):
-#     uuid = db.StringProperty(required=True)
-#     email = db.EmailProperty(verbose_name="Email", required=True)
-#     username = db.StringProperty(verbose_name="Username", required=True)
-#     password_hash = db.StringProperty(verbose_name="Password", required=True)
-#     first_name = db.StringProperty(verbose_name="First Name")
-#     last_name = db.StringProperty(verbose_name="Last Name")
-#     country = db.StringProperty(verbose_name="Country", default='United States', choices=sorted(countries.values()))
-#     currency = db.StringProperty(verbose_name="Currency")
-#     create_time = db.DateTimeProperty(verbose_name="Create Time", auto_now_add=True, required=True)
-#     touch_time = db.DateTimeProperty(verbose_name="Touch Time", auto_now=True, required=True)
-
-
-
-class Bom(db.Model):
-    parent_id = db.SelfReferenceProperty()
-    uuid = db.StringProperty(required=True)
-    public_id = db.IntegerProperty(required=True)
-    name = db.StringProperty(verbose_name="Name")
-    images = db.ListProperty(blobstore.BlobKey)
-    public = db.BooleanProperty(required=True, default=False)
-    frozen = db.BooleanProperty(required=True, default=False)
-    tag_name = db.StringProperty(verbose_name="Tag Name")
-    create_time = db.DateTimeProperty(verbose_name="Create Time", auto_now_add=True, required=True)
-    change_time = db.DateTimeProperty(verbose_name="Change Time", auto_now=True, required=True)
-    like_count_cache = db.IntegerProperty()
-    watch_count_cache = db.IntegerProperty()
-    rough_count_cache = db.IntegerProperty()
-
-    @classmethod
-    def new(cls):
-        return cls(
-            uuid=str(uuid.uuid4()),
-            public_id=PublicBomIdCounter.getNextId() )
-
-    def get_url(self):
-        return "/bom/" + str(self.public_id)
-
-    def delete(self):
-        @db.transactional(xg=True)
-        def del_in_transaction():
-            # User references
-            for user2bom in self.user2bom:
-                user2bom.delete()
-            # Parts
-            for part in self.parts:
-                part.delete()
-            # PartGroups
-            for partgroup in self.partgroups:
-                partgroup.delete()
-            # Manufacturers
-            for manufacturer in self.manufacturers:
-                manufacturer.delete()
-            # Suppliers
-            for supplier in self.suppliers:
-                supplier.delete()
-            # Subsystems
-            for subsystem in self.subsystems:
-                subsystem.delete()                                    
-            # Bom
-            super(Bom, self).delete()
-
-        del_in_transaction()
-
-
-
-class User2Bom(db.Model):
-    # user_id = db. ReferenceProperty(User, collection_name='user2bom', required=True)
-    bom_id = db. ReferenceProperty(Bom, collection_name='user2bom', required=True)
-    role = db.StringProperty(verbose_name="Role", default="reader", required=True, choices=set(["owner", "writer", "reader"]))
-    like_flag = db.BooleanProperty(verbose_name="Like Flag", default=False)
-    watch_flag = db.BooleanProperty(verbose_name="Watch Flag", default=False)
-    rough_flag = db.BooleanProperty(verbose_name="Rough_Flag", default=False)
-
-
-
-class Part(db.Model):
-    bom_id = db.ReferenceProperty(Bom, collection_name='parts', required=True)
-    uuid = db.StringProperty(required=True)
-    name = db.StringProperty(verbose_name="Name", required=True)
-    quantity_cached = db.IntegerProperty()
-    pricepoint_cached = db.FloatProperty()
-    currencies_cached = db.StringListProperty()
-    part_group = db.StringProperty(verbose_name="Part Group")
-    designator_list = db.StringListProperty()
-    note_list = db.StringListProperty()                       # list of notes
-    manufacturer_list = db.StringListProperty()               # list of [name,part_num]
-    supplier_list = db.StringListProperty(required=True)      # list of [name,order_num,package_count,package_units,currency,price,explicit_url]
-    usage_list = db.StringListProperty(required=True)         # list of [subsystem,quantity,specific_use]
-
-
-
-class PartGroups(db.Model):
-    bom_id = db.ReferenceProperty(Bom, collection_name='partgroups', required=True)
-    name = db.StringProperty(verbose_name="Name", required=True)
-    description = db.StringProperty(verbose_name="description")
-
-
-
-class Manufacturers(db.Model):
-    bom_id = db.ReferenceProperty(Bom, collection_name='manufacturers', required=True)
-    name = db.StringProperty(verbose_name="Name", required=True)
-
-
-
-class Suppliers(db.Model):
-    bom_id = db.ReferenceProperty(Bom, collection_name='suppliers', required=True)
-    name = db.StringProperty(verbose_name="Name", required=True)
-    note = db.StringProperty(verbose_name="Note")
-    currency_list = db.StringListProperty()
-    country_list = db.StringListProperty()
-    search_url_pattern = db.StringProperty(verbose_name="Search URL Pattern")
-
-
-
-class Subsystems(db.Model):
-    bom_id = db.ReferenceProperty(Bom, collection_name='subsystems', required=True)
-    name = db.StringProperty(verbose_name="Name", required=True)
-    images = db.ListProperty(blobstore.BlobKey)
-    description = db.StringProperty(verbose_name="Description")
 
 

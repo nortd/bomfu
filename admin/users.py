@@ -82,7 +82,7 @@ class List(BaseHandler):
             "users" : users,
             "count" : qry.count()
         }
-        return self.render_template('admin/list.html', **params)
+        return self.render_template('admin/users.html', **params)
 
 
 class Edit(BaseHandler):
@@ -112,7 +112,7 @@ class Edit(BaseHandler):
         params = {
             'user' : user
         }
-        return self.render_template('admin/edit.html', **params)
+        return self.render_template('admin/edituser.html', **params)
 
     @webapp2.cached_property
     def form(self):

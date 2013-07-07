@@ -11,7 +11,12 @@ from wtforms import fields
 
 
 
-class BomsHandler(BaseHandler):
+class EditProfileForm(forms.EditProfileForm):
+    activated = fields.BooleanField('Activated')
+
+
+
+class List(BaseHandler):
     def get(self):
         p = self.request.get('p')
         q = self.request.get('q')
@@ -48,7 +53,7 @@ class BomsHandler(BaseHandler):
                 params['p'] = p
             if cursor:
                 params['c'] = cursor.urlsafe()
-            return self.uri_for('boms', **params)
+            return self.uri_for('boms-admin', **params)
 
         self.view.pager_url = pager_url
         self.view.q = q
@@ -59,6 +64,50 @@ class BomsHandler(BaseHandler):
                              ('tag_name', 'Tag Name'),
                              ('public', 'public')],
             "boms" : boms,
-            "count" : qry.count()
+            "count" : qry.count(),
         }
-        return self.render_template('boms.html', **params)
+        return self.render_template('admin/boms.html', **params)
+
+
+
+class Edit(BaseHandler):
+    def get_or_404(self, bom_id):
+        try:
+            bom = Bom.get_by_id(long(bom_id))
+            if bom:
+                return bom
+        except ValueError:
+            pass
+        self.abort(404)
+
+    def edit(self, bom_id):
+        if self.request.POST:
+            bom = self.get_or_404(bom_id)
+            if self.form.validate():
+                self.form.populate_obj(bom)
+                bom.put()
+                self.add_message("Changes saved!", 'success')
+                return self.redirect_to("bom-admin-edit", bom_id=bom_id)
+            else:
+                self.add_message("Could not save changes!", 'error')
+        else:
+            bom = self.get_or_404(bom_id)
+            self.form.process(obj=bom)
+
+        params = {
+            'bom' : bom
+        }
+        return self.render_template('admin/editbom.html', **params)
+
+    @webapp2.cached_property
+    def form(self):
+        return EditProfileForm(self)
+
+
+
+class Delete(BaseHandler):
+    def get(self, bom_id):
+        bom2delKey = ndb.Key(urlsafe=bom_id)
+        bom2del = bom2delKey.get()
+        bom2del.delete()
+        self.redirect('/admin/bom')
