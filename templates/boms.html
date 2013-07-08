@@ -1,7 +1,7 @@
 {% extends base_layout %}
 
 {% block header_title %}
-    {% trans %}BOMs{% endtrans %}
+    {% trans %}My BOMs{% endtrans %}
 {% endblock %}
 
 
@@ -32,7 +32,12 @@
     {% for bom in boms %}
     <tr>
         <td>
-            <a class="icon" href=""><i class="icon-pencil"></i></a>
+            <div class="btn-group">
+              <a class="btn btn-mini" href="{{ uri_for('bom-build', public_id=bom.public_id) }}"><i class="icon-wrench"></i>build</a>
+              <a class="btn btn-mini" href="{{ uri_for('bom-order', public_id=bom.public_id, currency='USD') }}"><i class="icon-shopping-cart"></i>order</a>
+              <a class="btn btn-mini" href="{{ uri_for('bom-edit', public_id=bom.public_id) }}"><i class="icon-pencil"></i>edit</a>
+              <a class="btn btn-mini" href="{{ uri_for('bom-raw', public_id=bom.public_id) }}">raw</a>
+            </div>
         </td>
         {% for attr, name in list_columns %}
         <td>

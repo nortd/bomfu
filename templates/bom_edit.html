@@ -1,0 +1,15 @@
+{% extends base_layout %}
+
+{% block header_title %}
+    Edit BOM
+{% endblock %}
+
+{% block content %}
+    
+{% for part in rawparts %}
+<pre>
+{{ part }}
+</pre>
+{% endfor %}
+
+{% endblock %}

@@ -47,4 +47,12 @@
     {% endfor %}
 </table>
 {{ lib.render_pager() }}
+
+<hr>
+
+<div class="row">
+    <div class="span6 pull-left">
+        <a href="{{ uri_for('bom-admin-addtest') }}" class="btn btn-large">Add Test BOM</a>
+    </div>
+</div>
 {% endblock %}

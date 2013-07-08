@@ -15,6 +15,34 @@ indexes:
   - name: __key__
     direction: desc
 
+- kind: Part
+  ancestor: yes
+  properties:
+  - name: name
+
+- kind: Part
+  ancestor: yes
+  properties:
+  - name: subsystem_names
+  - name: name
+
+- kind: Part
+  ancestor: yes
+  properties:
+  - name: supplier_currencies
+  - name: supplier_names
+  - name: name
+
+- kind: Subsystems
+  ancestor: yes
+  properties:
+  - name: name
+
+- kind: Suppliers
+  ancestor: yes
+  properties:
+  - name: name
+
 - kind: User
   properties:
   - name: __key__

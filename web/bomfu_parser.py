@@ -31,13 +31,6 @@ import logging as log
 from pprint import pprint
 
 
-# enum for table column names
-tITEM =      0;
-tSUPPLIER =  1;
-tORDERNUM =  2;
-tLOCATIONS =  3;
-tSUBSYSTEMUSE =  4;
-
 # logging system
 log.basicConfig(level=log.DEBUG)
 # debug, info, warn, error, fatal, basicConfig
@@ -107,7 +100,7 @@ def parse(bomstring):
     part_entry_suppliers = None
     part_entry_usages = None
     for line in lines:
-        if line and line[0] != '#' and line[0] != '!' and len(line) > 12:
+        if line and line[0] != '#' and line[0] != '!':
             if line[:3] == '   ':  # auxilliary line
                 auxline = line[3:].strip()
                 if auxline[0] == '*':  # note line
@@ -132,7 +125,7 @@ def parse(bomstring):
                         supplier = supplier_parts[0].strip()[1:].strip()
                         order_num = supplier_parts[1].strip()
                         pricing = supplier_parts[2].strip()
-                        explicit_url = None
+                        explicit_url = ''
                         if len(supplier_parts) == 4:
                             explicit_url = supplier_parts[3].strip()
 
@@ -150,7 +143,7 @@ def parse(bomstring):
                         # pricing
                         amount = None
                         currency = None
-                        country = None
+                        country = ''
                         pricing_parts = pricing.split(' ')
                         if len(pricing_parts) == 2:
                             location = pricing_parts[0]
@@ -187,30 +180,37 @@ def parse(bomstring):
                     break
             else:  # master line
                 # part_name[, units=mm]  [part_group]
-                # create an empty part entry
-                # [name, quantity_units, group, notes, designators, manufacturers suppliers, usages]
-                parts.append([None,None,None,[],[],[],[],[]])
-                part_entry = parts[-1]  # get new entry
-                part_entry_notes = part_entry[3]
-                part_entry_designators = part_entry[4]
-                part_entry_manufacturers = part_entry[5]
-                part_entry_suppliers = part_entry[6]
-                part_entry_usages = part_entry[7]
-                line_parts = line.split("   ")
-                if len(line_parts) == 2:
+                line_parts = line.strip().split("   ")
+                if (len(line_parts) == 1 or len(line_parts) == 2) and line_parts[0] != '':
+                    if line_parts[0] == '':
+                        # was just an empty filler line
+                        continue
+                    # create an empty part entry
+                    # [name, quantity_units, group, notes, designators, manufacturers suppliers, usages]
+                    parts.append([None,'','',[],[],[],[],[]])
+                    part_entry = parts[-1]  # get new entry
+                    part_entry_notes = part_entry[3]
+                    part_entry_designators = part_entry[4]
+                    part_entry_manufacturers = part_entry[5]
+                    part_entry_suppliers = part_entry[6]
+                    part_entry_usages = part_entry[7]
+
                     name_parts = line_parts[0].strip().split('units=')
                     part_name = name_parts[0].strip()
                     if part_name[-1] == ',':
                         part_name = part_name[:-1].strip()
-                    quantity_units = None
+                    quantity_units = ''
                     if len(name_parts) == 2:
                         quantity_units = name_parts[1]
-                    part_group = line_parts[1].strip()
+                    part_group = ''
+                    if len(line_parts) == 2:
+                        part_group = line_parts[1].strip()
                     part_entry[0] = part_name
                     part_entry[1] = quantity_units
                     part_entry[2] = part_group
                 else:
                     log.error("invalid master line")
+                    break
              
     # pprint(parts)
     # pprint(stats_num_items)
@@ -328,7 +328,7 @@ def dump(bom):
 
     out = []
     for part in bom:
-        if len(part) != 4:
+        if len(part) != 8:
             log.error("invalid part entry")
             continue
 
@@ -345,7 +345,8 @@ def dump(bom):
         out.append(part_name)
         if quantity_units:
             out.append(', units=' + str(quantity_units))
-        out.append('   ' + part_group)
+        if part_group:
+            out.append('   ' + part_group)
 
         # note lines
         for note in notes:
@@ -371,10 +372,14 @@ def dump(bom):
             if package_count != 1:
                 order_num_options += '##' + str(package_count)
 
-            if country != '':
+            if country:
                 country = '-' + country
-            if explicit_url != '':
+            else:
+                country = ''
+            if explicit_url:
                 explicit_url = '   ' + explicit_url
+            else:
+                explicit_url = ''
 
             # TODO consolidate same suppliers/order_num with different locations
             out.append('\n   $ ' + supplier[0] + '   ' + order_num + order_num_options +
@@ -387,7 +392,7 @@ def dump(bom):
             specific_use = usage[2]
             out.append('\n   ' + str(quantity) + '   ' + subsystem + '   ' + specific_use)
 
-        out.append('\n')
+        out.append('\n\n')
 
     out_string = ''.join(out)
     return out_string

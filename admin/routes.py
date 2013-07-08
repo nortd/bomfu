@@ -12,7 +12,8 @@ _routes = [
         RedirectRoute('/users/<user_id>/', users.Edit, name='user-edit', strict_slash=True, handler_method='edit'),
         RedirectRoute('/bom/', boms.List, name='boms-admin', strict_slash=True),
         RedirectRoute('/bom/edit/<bom_id>', boms.Edit, name='bom-admin-edit', strict_slash=True, handler_method='edit'),
-        RedirectRoute('/bom/delete/<bom_id>', boms.Delete, name='bom-admin-delete', strict_slash=True)
+        RedirectRoute('/bom/delete/<bom_id>', boms.Delete, name='bom-admin-delete', strict_slash=True),
+        RedirectRoute('/bom/addtest', boms.AddTestBom, name='bom-admin-addtest', strict_slash=True)
     ])
 ]
 

@@ -51,13 +51,6 @@ import logging as log
 from pprint import pprint
 
 
-# enum for table column names
-tITEM =      0;
-tSUPPLIER =  1;
-tORDERNUM =  2;
-tLOCATIONS =  3;
-tSUBSYSTEMUSE =  4;
-
 # logging system
 log.basicConfig(level=log.DEBUG)
 # debug, info, warn, error, fatal, basicConfig
@@ -117,7 +110,7 @@ def bomfu_to_json_old(bomfu_string):
                 # we are dealing with an auxilliary line
                 # "num   subsystem   use"
                 masterLine = parts[-1]  # get latest entry
-                if len(masterLine) == tSUBSYSTEMUSE+1:
+                if len(masterLine) == 5:
                     usage_parts = line[3:].split("   ")
                     for i in range(len(usage_parts)):  #strip
                         usage_parts[i] = usage_parts[i].strip()
@@ -127,7 +120,7 @@ def bomfu_to_json_old(bomfu_string):
                             return
                         if i == 0:
                             usage_parts[i] = int(usage_parts[i])
-                    masterLine[tSUBSYSTEMUSE].append(usage_parts)
+                    masterLine[4].append(usage_parts)
                 else:
                     log.error('aux line without proper preceding master line')
                     log.error(line)
@@ -145,9 +138,9 @@ def bomfu_to_json_old(bomfu_string):
                         return                      
                 if len(masterLineParts) >= 4:
                     # a master line has at least 4 parts and can have multiple locations
-                    masterLine.append(masterLineParts[tITEM].strip())
-                    masterLine.append(masterLineParts[tSUPPLIER].strip())
-                    masterLine.append(masterLineParts[tORDERNUM].strip())
+                    masterLine.append(masterLineParts[0].strip())
+                    masterLine.append(masterLineParts[1].strip())
+                    masterLine.append(masterLineParts[2].strip())
                     # parse locations
                     locs = {}
                     for k in range(3,len(masterLineParts)):
@@ -163,16 +156,16 @@ def bomfu_to_json_old(bomfu_string):
                             else:
                                 pass
                                 # # use url pattern from supplierdef
-                                # if masterLine[tSUPPLIER] in supplierdefs:
-                                #   if cur in supplierdefs[masterLine[tSUPPLIER]]:
-                                #       url_pattern = supplierdefs[masterLine[tSUPPLIER]][cur]
-                                #       url = url_pattern.replace('%%', masterLineParts[tORDERNUM])                                     
+                                # if masterLine[1] in supplierdefs:
+                                #   if cur in supplierdefs[masterLine[1]]:
+                                #       url_pattern = supplierdefs[masterLine[1]][cur]
+                                #       url = url_pattern.replace('%%', masterLineParts[2])                                     
                                 #   else:
                                 #       log.error("currency not defined in supplierdef")
                                 #       log.error(line)
                                 #       return
                                 # else:
-                                #   log.error("supplier not defined in supplierdefs: " + masterLine[tSUPPLIER])
+                                #   log.error("supplier not defined in supplierdefs: " + masterLine[1])
                                 #   log.error(line)
                             if cur in stats_num_items:
                                 stats_num_items[cur] += 1
@@ -187,7 +180,7 @@ def bomfu_to_json_old(bomfu_string):
                             log.error(line)
                             return
                     masterLine.append(locs)  # locations
-                    masterLine.append([])    # masterLine[tSUBSYSTEMUSE]
+                    masterLine.append([])    # masterLine[4]
                 else:
                     log.error("too few master line parts")
                     log.error(line)
@@ -235,11 +228,11 @@ def convert_old_to_new(old_json):
 
     new_json = []
     for part in old_json:
-        name = part[tITEM]
-        supplier = part[tSUPPLIER]
-        order_num = part[tORDERNUM]
-        sources = part[tLOCATIONS]
-        usage = part[tSUBSYSTEMUSE]
+        name = part[0]
+        supplier = part[1]
+        order_num = part[2]
+        sources = part[3]
+        usage = part[4]
 
         new_part = []
         new_part.append(name)
@@ -253,19 +246,19 @@ def convert_old_to_new(old_json):
         for currency, price_url in sources.items():
             url = None
             if len(price_url) == 1:
-                url = ''
+                pass
             elif len(price_url) == 2:
                 url = price_url[1]
             else:
                 log.error("invalid pricing dict entry")
                 break
-            sources_list.append([supplier, order_num, 1, currency, '', price_url[0], url])
-        new_part.append(sources_list)
+            sources_list.append([supplier, order_num, 1, currency, None, price_url[0], url])
+        new_part.append(sources_list)     # supplier list
 
         usage_list = []
         for usage_ in usage:
             usage_list.append(usage_)
-        new_part.append(usage_list)
+        new_part.append(usage_list)       # usage list
 
         new_json.append(new_part)
 

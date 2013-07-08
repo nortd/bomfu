@@ -153,7 +153,7 @@ class Bom(ndb.Model):
                 # make sure each part is added only once
                 if part.uuid not in parts_collected:
                     # check if supplier_name matches currency
-                    i = part.supplier_name.index(supplier.name)
+                    i = part.supplier_names.index(supplier.name)
                     if part.supplier_currencies[i] == currency:
                         # supplier actually matches currency
                         parts_collected.add(part.uuid)
@@ -222,11 +222,12 @@ class Part(ndb.Model):
     supplier_ordernums = ndb.StringProperty(repeated=True)
     supplier_packagecounts = ndb.FloatProperty(repeated=True)
     supplier_currencies = ndb.StringProperty(repeated=True)
+    supplier_countries = ndb.StringProperty(repeated=True)
     supplier_prices = ndb.FloatProperty(repeated=True)
     supplier_urls = ndb.StringProperty(repeated=True)
     # subsystems
-    subsystem_names = ndb.StringProperty(repeated=True)
     subsystem_quantities = ndb.FloatProperty(repeated=True)
+    subsystem_names = ndb.StringProperty(repeated=True)
     subsystem_specificuses = ndb.StringProperty(repeated=True)
 
     @classmethod
@@ -252,12 +253,13 @@ class Part(ndb.Model):
         # pricepoints_cached
         # one for each supplier
         self.pricepoints_cached = []
-        for i in len(self.supplier_names):
+        for i in range(len(self.supplier_names)):
             price = self.supplier_prices[i]
             package_count = self.supplier_packagecounts[i]
-            if package_count > 0:
-                packs_needed = math.ceil(self.quantity_cached/package_count)
-                self.pricepoints_cached.append(price * packs_needed)
+            if package_count == None or package_count <= 0:
+                package_count = 1
+            packs_needed = math.ceil(self.quantity_cached/package_count)
+            self.pricepoints_cached.append(price * packs_needed)
 
         items_to_put = []
 
@@ -265,7 +267,7 @@ class Part(ndb.Model):
         qry = PartGroups.query(PartGroups.name == self.part_group, ancestor=self.bom_key)
         item = qry.fetch(1)
         if not item:  # non-existent -> create
-            newitem = PartGroups.new(self.bom_key, name)
+            newitem = PartGroups.new(self.bom_key, self.part_group)
             items_to_put.append(newitem)
 
         # Manufacturers
@@ -297,6 +299,7 @@ class Part(ndb.Model):
             ndb.put_multi(items_to_put)
             super(Part, self).put()
 
+        # print '>>>>>>>', self, '<<<<<'
         put_in_transaction()
 
 
@@ -369,7 +372,7 @@ class Part(ndb.Model):
             else:
                 i += 1
 
-    def add_supplier(self, name, order_num, package_count, currency, price, url):
+    def add_supplier(self, name, order_num, package_count, currency, country, price, url):
         try:
             i = self.supplier_names.index(name)
         except ValueError:
@@ -379,12 +382,14 @@ class Part(ndb.Model):
             self.supplier_ordernums.append(order_num)
             self.supplier_packagecounts.append(package_count)
             self.supplier_currencies.append(currency)
+            self.supplier_countries.append(country)
             self.supplier_prices.append(price)
             self.supplier_urls.append(url)
         else:       # update
             self.supplier_ordernums[i] = order_num
             self.supplier_packagecounts[i] = package_count
             self.supplier_currencies[i] = currency
+            self.supplier_countries[i] = country
             self.supplier_prices[i] = price
             self.supplier_urls[i] = url
 
@@ -396,6 +401,7 @@ class Part(ndb.Model):
                 self.supplier_ordernums.pop(i)
                 self.supplier_packagecounts.pop(i)
                 self.supplier_currencies.pop(i)
+                self.supplier_countries.pop(i)
                 self.supplier_prices.pop(i)
                 self.supplier_urls.pop(i)
             else:

@@ -16,6 +16,72 @@ class EditProfileForm(forms.EditProfileForm):
 
 
 
+class AddTestBom(BaseHandler):
+    def get(self):
+        """Add new test BOM from file.
+
+        Parsed BOM format:
+        [
+          [ part_name, quantity_units, part_group,
+            [ note,
+              ...
+            ],
+            [ designator,
+              ...
+            ],
+            [ [manufacturer, part_num],
+              ...
+            ],
+            [ [supplier_name, order_num, package_count, currency, country, amount, explicit_url], 
+              [another supplier],
+                ...
+            ],
+            [ [quantity, subsystem, specific use],
+              [another usage],
+                ...
+            ]
+          ],
+          [ another part ],
+            ...
+        ]
+        """
+        from web.bomfu_parser_legacy import get_new_from_legacy
+        from web.bomfu_parser import parse
+
+        bom_file = get_new_from_legacy()
+        bom_parsed = parse(bom_file)
+
+        bom = Bom.new('')
+        bom.name = "test-" + str(bom.public_id)
+        bom.put()
+
+        for p in bom_parsed:
+            part = bom.new_part(p[0])
+            part.quantity_units = p[1]
+            part.part_group = p[2]
+            part.note_list = p[3]
+            part.designator_list = p[4]
+            for manufacturer in p[5]:
+                part.manufacturer_names.append(manufacturer[0])
+                part.manufacturer_partnums.append(manufacturer[1])
+            for supplier in p[6]:
+                part.supplier_names.append(supplier[0])
+                part.supplier_ordernums.append(supplier[1])
+                part.supplier_packagecounts.append(supplier[2])
+                part.supplier_currencies.append(supplier[3])
+                part.supplier_countries.append(supplier[4])
+                part.supplier_prices.append(supplier[5])
+                part.supplier_urls.append(supplier[6])
+            for usage in p[7]:
+                part.subsystem_quantities.append(usage[0])
+                part.subsystem_names.append(usage[1])
+                part.subsystem_specificuses.append(usage[2])
+            part.put()
+
+        self.redirect(self.uri_for('bom-raw', public_id=bom.public_id))
+
+
+
 class List(BaseHandler):
     def get(self):
         p = self.request.get('p')
