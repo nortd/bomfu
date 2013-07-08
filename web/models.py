@@ -1,5 +1,6 @@
 
 import math
+import uuid
 from google.appengine.ext import ndb
 from google.appengine.ext import blobstore
 from google.appengine.api.images import get_serving_url
@@ -34,6 +35,7 @@ class Bom(ndb.Model):
     parent_key = ndb.KeyProperty(kind='Bom')
     public_id = ndb.StringProperty(required=True)
     name = ndb.StringProperty()
+    uuid = ndb.StringProperty(required=True)
     images = ndb.BlobKeyProperty(repeated=True)
     public = ndb.BooleanProperty(default=False)
     frozen = ndb.BooleanProperty(default=False)
@@ -47,7 +49,9 @@ class Bom(ndb.Model):
 
     @classmethod
     def new(cls, name):
-        return cls(public_id=str(PublicBomIdCounter.getNextId()))
+        return cls(public_id=str(PublicBomIdCounter.getNextId()),
+                   uuid=str(uuid.uuid4())
+                  )
 
 
     def put(self):
@@ -91,10 +95,90 @@ class Bom(ndb.Model):
         return Part.new(self.key, name)
 
 
-    def get_parts(self):
-        """Return list of parts by PartGroup,"""
-        pass
+    def get_parts_by_partgroup(self):
+        """Return list of Parts by part_group, ordered by name.
 
+        The format is a list of tuples:
+        [(group1, [part,part,..]), (group2, [part,part,..]), ]
+        """
+        by_partgroup = []
+        qry = PartGroups.query(ancestor=self.key).order(PartGroups.name)
+        for group in qry.iter():
+            partlist = []
+            q = Part.query(Part.part_group == group.name, ancestor=self.key)\
+                    .order(Part.name)
+            for part in q.iter():
+                partlist.append(part)
+            by_partgroup.append((group.name,partlist))
+        return by_partgroup
+
+
+    def get_parts_by_manufacturer(self):
+        """Return list of Parts by manufacturer, ordered by name.
+
+        One part can be shown under multiple manufacturers.
+        The format is a list of tuples:
+        [(manu1, [part,part,..]), (manu2, [part,part,..]), ]
+        """
+        by_manufacturer = []
+        qry = Manufacturers.query(ancestor=self.key).order(Manufacturers.name)
+        for manu in qry.iter():
+            partlist = []
+            q = Part.query(Part.manufacturer_names == manu.name, ancestor=self.key)\
+                    .order(Part.name)
+            for part in q.iter():
+                partlist.append(part)
+            by_manufacturer.append((manu.name,partlist))
+        return by_manufacturer
+
+
+    def get_parts_by_supplier(self, currency):
+        """Return list of Parts by supplier and currency, ordered by name.
+
+        The format is a list of tuples:
+        [(supplier1, [part,part,..]), (supplier2, [part,part,..]), ]
+        FIXME: The Part query is a bit inefficient when the parts have
+        many alternative suppliers. Too many queries, too many filtered out.
+        """
+        by_supplier = []
+        parts_collected = set()
+        qry = Suppliers.query(ancestor=self.key).order(Suppliers.name)
+        for supplier in qry.iter():
+            partlist = []
+            q = Part.query(Part.supplier_names == supplier.name, 
+                           Part.supplier_currencies == currency, 
+                           ancestor=self.key)\
+                    .order(Part.name)
+            for part in q.iter():
+                # make sure each part is added only once
+                if part.uuid not in parts_collected:
+                    # check if supplier_name matches currency
+                    i = part.supplier_name.index(supplier.name)
+                    if part.supplier_currencies[i] == currency:
+                        # supplier actually matches currency
+                        parts_collected.add(part.uuid)
+                        partlist.append(part)
+            by_supplier.append((supplier.name,partlist))
+        return by_supplier
+
+
+    def get_parts_by_subsystem(self):
+        """Return list of Parts by subsystem, ordered by name.
+
+        One part can be shown under multiple subsystems.
+        The format is a list of tuples:
+        [(subsys1, [part,part,..]), (subsys2, [part,part,..]), ]
+        """
+        by_subsystem = []
+        qry = Subsystems.query(ancestor=self.key).order(Subsystems.name)
+        for subsys in qry.iter():
+            partlist = []
+            q = Part.query(Part.subsystem_names == subsys.name, ancestor=self.key)\
+                    .order(Part.name)
+            for part in q.iter():
+                partlist.append(part)
+            by_subsystem.append((subsys.name,partlist))
+        return by_subsystem
 
 
 
@@ -119,6 +203,7 @@ class User2Bom(ndb.Model):
 class Part(ndb.Model):
     bom_key = ndb.KeyProperty(kind=Bom, required=True)
     name = ndb.StringProperty(required=True)
+    uuid = ndb.StringProperty(required=True)
     create_time = ndb.DateTimeProperty(auto_now_add=True)
     change_time = ndb.DateTimeProperty(auto_now=True)
     quantity_cached = ndb.FloatProperty()
@@ -146,7 +231,11 @@ class Part(ndb.Model):
 
     @classmethod
     def new(cls, bom_key, name):
-        return cls(parent=bom_key, bom_key=bom_key, name=name)
+        return cls(parent=bom_key, 
+                   bom_key=bom_key, 
+                   name=name,
+                   uuid=str(uuid.uuid4())
+                  )
 
     def put(self):
         """Save and also set refs.
@@ -344,6 +433,9 @@ class PartGroups(ndb.Model):
     bom_key = ndb.KeyProperty(kind=Bom, required=True)
     name = ndb.StringProperty(required=True)
     description = ndb.StringProperty()
+    # for sorting
+    create_time = ndb.DateTimeProperty(auto_now_add=True)
+    change_time = ndb.DateTimeProperty(auto_now=True)
 
     @classmethod
     def new(cls, bom_key, name):
@@ -353,6 +445,9 @@ class PartGroups(ndb.Model):
 class Manufacturers(ndb.Model):
     bom_key = ndb.KeyProperty(kind=Bom, required=True)
     name = ndb.StringProperty(required=True)
+    # for sorting
+    create_time = ndb.DateTimeProperty(auto_now_add=True)
+    change_time = ndb.DateTimeProperty(auto_now=True)
 
     @classmethod
     def new(cls, bom_key, name):
@@ -366,6 +461,9 @@ class Suppliers(ndb.Model):
     currency_list = ndb.StringProperty(repeated=True)
     country_list = ndb.StringProperty(repeated=True)
     search_url_pattern = ndb.StringProperty()
+    # for sorting
+    create_time = ndb.DateTimeProperty(auto_now_add=True)
+    change_time = ndb.DateTimeProperty(auto_now=True)
 
     @classmethod
     def new(cls, bom_key, name):
@@ -377,6 +475,9 @@ class Subsystems(ndb.Model):
     name = ndb.StringProperty(required=True)
     images = ndb.BlobKeyProperty(repeated=True)
     description = ndb.StringProperty()
+    # for sorting
+    create_time = ndb.DateTimeProperty(auto_now_add=True)
+    change_time = ndb.DateTimeProperty(auto_now=True)
 
     @classmethod
     def new(cls, bom_key, name):

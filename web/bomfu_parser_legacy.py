@@ -216,7 +216,10 @@ def convert_old_to_new(old_json):
     returns:
     [
       [ part_name, part_group,
-        [ [supplier_name, order_num, package_count, package_units, currency, country, amount, explicit_url], 
+        [],
+        [],
+        [],
+        [ [supplier_name, order_num, package_count, currency, country, amount, explicit_url], 
           [another supplier],
             ...
         ],
@@ -240,7 +243,11 @@ def convert_old_to_new(old_json):
 
         new_part = []
         new_part.append(name)
-        new_part.append('')
+        new_part.append(None)  # quantity_units
+        new_part.append(None)  # partgroup
+        new_part.append([])    # note list
+        new_part.append([])    # designator list
+        new_part.append([])    # manufacturer list
 
         sources_list = []
         for currency, price_url in sources.items():
@@ -252,7 +259,7 @@ def convert_old_to_new(old_json):
             else:
                 log.error("invalid pricing dict entry")
                 break
-            sources_list.append([supplier, order_num, 1, '', currency, '', price_url[0], url])
+            sources_list.append([supplier, order_num, 1, currency, '', price_url[0], url])
         new_part.append(sources_list)
 
         usage_list = []
@@ -298,31 +305,37 @@ bom_legacy = """
 
 
 ### NortdLabs
-Lasersaur DriveBoard PCB   NortdLabs   la-dbp   USD 138.0   EUR 115.0
+Lasersaur DriveBoard PCB   NortdLabs   la-dbp   USD 98.0   EUR 93.0
    1   electronics   controller board
-MechParts Aluminum   NortdLabs   la-mpk   USD 285.0   EUR 235.0
+LasersaurBBB (BeagleBoneBlack, Wifi, configured)   NortdLabs   la-bbb   USD 99.0   EUR 94.0
+   1   electronics   controller board
+MechParts Aluminum   NortdLabs   la-mpk   USD 245.0   EUR 225.0
    1   electronics   2x door sensor mounts
    0   y-drive   2x shaft bearing mounts, 1x limit sensor mount, 1x motor mount
    0   x-cart   2x roller/optics mounts
    0   x-drive   1x motor mount, 2x limit sensor mounts
    0   optics-laser   4x laser tube mounts
-Lasersaur Nozzle   NortdLabs   la-noz   USD 110.0   EUR 80.0
+Lasersaur Nozzle   NortdLabs   la-noz   USD 110.0   EUR 102.0
    1   optics-laser   laser head
-Lens and Mirrors Pack   NortdLabs   la-lmp   USD 295.0   EUR 225.0
+Lens and Mirrors Pack   NortdLabs   la-lmp   USD 295.0   EUR 275.0
    1   optics-laser   laser beam delivery
+Mount Panels   NortdLabs   la-mpan   USD 75.0   EUR 70.0
+   1   electronics   DriveBoard and 24V/5V PSU mount
+   0   electronics   C14 power socket mount
+   0   frame-panels   rear bottom right
 
 
 ### Misumi
 aluminum bracket extrusion   Misumi   HFLBS5-650   USD 2.0   EUR 2.0
    1   x-drive   cable carrier base
 angle bracket, single   Misumi   HBLFSN5   USD 0.75   EUR 0.63
-   26   frame-outer   6x front columns, 8x separation columns, 10x rear box
+   20   frame-outer   2x front columns, 4x separation columns, 10x rear box
    8   frame-door   door connections
    1   optics-laser   mirror2
-   8   extra   extra
+   10   extra   extra
 angle bracket, single, black   Misumi   HBLFSNB5   USD 1.98   EUR 1.32
-   8   frame-outer   bottom cross
-   12   frame-table   table frame
+   6   frame-outer   bottom cross
+   20   frame-table   table frame
    2   extra   extra
 angle bracket, single, light   Misumi   HBLSS5   USD 1.02   EUR 0.7
    4   x-cart   extrusion connection
@@ -385,8 +398,9 @@ nut DIN985-like, lock, M5, 100 pack   Misumi   PACK-UNUT5   USD 15   EUR 15
    0   x-cart   4x custom part connection
    0   x-drive   1x motor mount
    0   optics-laser   8x laser mount
-panel clamps 6m   Misumi   HSCP3H-B-6   USD 24   EUR 20
-   1   frame-outer   framing support for separation panels
+panel rubber seal 6m   Misumi   HSCP3H-B-6   USD 24   EUR 20
+   1   frame-outer   seal for separation panels
+   0   frame-outer   seal for entry panel
 planar bracket, double   Misumi   SHPTSD5   USD 1.75   EUR 1.2
    4   frame-gantry   gantry frame y-rails
    2   frame-outer   middle column, separation
@@ -409,21 +423,25 @@ rotary shaft with step   Misumi   SFAC8-692-F24-P6   USD 37.0   EUR 23.0
 screw DIN912-like, M2.5x12   Misumi   CB2.5-12   USD 1   EUR 1
    4   x-drive   limit switch
    4   y-drive   limit switch
-   4   electronics   door switch
+   4   frame-door   door switch
 screw DIN912-like, M3x06   Misumi   CB3-6   USD 0.13   EUR 0.13
    1   x-drive   cable carrier
-   4   electronics   psu mount
+   28   electronics   4x psu mount, 24x magnetic limit switch
    1   extra    extra
 screw DIN912-like, M3x10   Misumi   CB3-10   USD 0.13   EUR 0.13
    5   x-drive   4x motor mount, 1x cable carrier
    2   air-assist   e-valve mount
-   5   extra    extra
+   4   electronics   4x power entry module
+   6   extra    extra
 screw DIN912-like, M3x16   Misumi   CB3-16   USD 0.13   EUR 0.13
-   10   electronics   6x power entry module, 4x driveboard mount
+   6   electronics   2x power entry module, 4x driveboard mount
+   6   extra    extra
 screw DIN912-like, M3x25   Misumi   CB3-25   USD 0.13   EUR 0.13
    1   air-assist   e-valve mount
+   4   extra    extra
 screw DIN912-like, M3x30   Misumi   CB3-30   USD 0.13   EUR 0.13
    4   electronics   driveboard mount
+   4   extra    extra
 screw DIN912-like, adhesive, M4x15   Misumi   LB4-15   USD 0.14   EUR 0.14
    4   y-drive   4x bearing clamps
    1   x-cart   roller
@@ -440,6 +458,7 @@ screw DIN912-like, M5x08   Misumi   CB5-8   USD 0.13   EUR 0.10
    8   frame-door   8x door slit cover
    6   y-drive   4x shaft mount, 2x limit switch
    4   x-cart   angle connection
+   4   optics-laser   4x laser psu mount
    4   electronics   panel mount
    40   extra    extra
 screw DIN912-like, M5x10   Misumi   CB5-10   USD 0.10   EUR 0.08
@@ -451,9 +470,8 @@ screw DIN912-like, M5x10   Misumi   CB5-10   USD 0.10   EUR 0.08
    14   optics-laser   4x mirror1, 2x mirror2, 8x laser mount
    80   extra    extra
 screw DIN912-like, M5x12   Misumi   CB5-12   USD 0.12   EUR 0.12
-   4   electronics   door switch
    5   x-drive   1x motor mount, 4x limit switch
-   4   frame-door   4x door handle
+   8   frame-door   4x door handle, 4x door switch
    5   extra    extra
 screw DIN912-like, M5x16   Misumi   CB5-16   USD 0.13   EUR 0.13
    8   y-drive   4x shaft mount, 4x limit switch
@@ -508,7 +526,7 @@ extrusion 2040, 100mm   Misumi   HFS5-2040-100   USD 4.6   EUR 4
 extrusion 2040, 1130mm   Misumi   HFS5-2040-1130   USD 12   EUR 15
    2   frame-outer   frame side bottom
 extrusion 2040, 120mm, black   Misumi   HFSB5-2040-120   USD 5   EUR 4.6
-   2   frame-outer   columns
+   2   frame-table   table columns
 extrusion 2040, 124mm, + mount holes   Misumi   HFS5-2040-124-Z5-YA43   USD 7.66   EUR 5.0
    1   x-cart   cart-bar
 extrusion 2040, 1260mm, black   Misumi   HFSB5-2040-1260   USD 21   EUR 17.66
@@ -555,7 +573,7 @@ extrusion 4040, 1130mm   Misumi   HFS5-4040-1130   USD 17.4   EUR 15
 extrusion 4040, 120mm   Misumi   HFS5-4040-120   USD 4.6   EUR 4
    6   frame-outer   frame front, middle, corner column
 extrusion 4040, 120mm, black   Misumi   HFSB5-4040-120   USD 8   EUR 8.6
-   2   frame-outer   columns
+   2   frame-table   table columns
 extrusion 4040, 1426mm   Misumi   HFS5-4040-1426   USD 22.0   EUR 18.0
    1   y-cart   cart-bar
 extrusion 4040, 1564mm   Misumi   HFS5-4040-1564   USD 24   EUR 20
@@ -584,6 +602,7 @@ one-touch panel-mount, 6mm   Misumi   MSBUL6   USD 3   EUR 3
 nut T-slot, post, M3   Misumi   HNTP5-3   USD 0.56   EUR 0.50
    2   x-drive   cable carrier
    1   air-assist   e-valve mount
+   12   electronics   12x magnetic limit switch
 nut T-slot, pre, M4   Misumi   HNTE5-4   USD 0.46   EUR 0.45
    8   y-cart   8x rollers
    2   x-cart   roller
@@ -593,8 +612,8 @@ nut T-slot, post, M5, lock   Misumi   HNTPZ5-5   USD 0.69   EUR 0.60
    48   frame-gantry   16x planar brackets, 32x angle brackets
    190   frame-outer   190x frame connections
    138   frame-panels   22x door top, 16x door front, 100x metal sheets
-   76   frame-door   32x brackets, 4x gas spring, 12x hinge, 4x door handle, 12x door hinge, 4x gas spring, 8x door slit cover
-   8   electronics   4x door switch, 4x panel mount
+   80   frame-door   32x brackets, 4x gas spring, 12x hinge, 4x door handle, 12x door hinge, 4x gas spring, 8x door slit cover, 4x door switch
+   4   electronics   4x panel mount
    24   frame-table   angle brackets
    4   y-cart   4x cart-bar
    20   y-drive   6x pulley/idler, 2x motor, 2x limit switch, 4x belt, 4x shaft mount, 2x cable carrier
@@ -609,8 +628,8 @@ washer DIN125-like, form A, M4   Misumi   PWF4   USD 0.13   EUR 0.13
    10   extra    extra
 washer DIN125-like, form A, M5   Misumi   PWF5   USD 0.13   EUR 0.13
    16   frame-gantry   planar brackets
-   12   frame-outer   4x door switch, 8x planar bracket
-   20   frame-door   gas spring mount
+   8   frame-outer   8x planar bracket
+   24   frame-door   4x door switch, 20gas spring mount
    38   frame-panels   22x door top, 16x door front
    12   y-drive   8x idler, 6x motor, 2x limit switch
    4   x-cart   custom part connection
@@ -626,12 +645,12 @@ washer DIN9021-like, form G, M5, 20 pack   Misumi   PACK-SPWFN5   USD 7.6   EUR 
    3   frame-door   20x gas spring mount
    0   y-drive   4x idler, 4x shaft mount
    0   x-drive   2x idler, 1x motor mount
-   0   optics-laser   8x laser mount
+   0   optics-laser   12x laser mount, laser psu mount
    0   extra    16x extra
 washer Schnorr-like, lock, M3   Misumi   GTS3   USD 0.12   EUR 0.12
    4   y-drive   4x limit switch
    10   x-drive   3x motor, 4x limit switch, 3x cable carrier
-   12   electronics   4x door switch, 4x power entry module, 4x psu mount
+   32   electronics   4x power entry module, 4x psu mount, 24 magnetic limit switch
    1   air-assist   e-valve mount
    12   extra    extra
 washer Schnorr-like, lock, M5   Misumi   GTS5   USD 0.13   EUR 0.13
@@ -685,22 +704,22 @@ electrolytic cap, 100uF   Mouser   EEU-HD1H101B   USD 0.5   EUR 0.4
 electrolytic cap, 1000uF   Mouser   EEU-HD1H102   USD 1.6   EUR 1.3
    1   electronics   DriveBoard component
 resistor 10 KOhm   Mouser   271-10K-RC   USD 0.15   EUR 0.11
-   11   electronics   9x input pull-down resistor, 1x voltage divider, 1x driver sensing
+   11   electronics   DriveBoard component (9x input pull-down resistor, 1x voltage divider, 1x driver sensing)
    3   extra   extra
 resistor 360 Ohm   Mouser   271-360-RC   USD 0.15   EUR 0.11
-   2   electronics   ssr limit resistor
+   2   electronics   DriveBoard component (ssr limit resistor)
    8   extra   extra
 resistor 11.5 KOhm   Mouser   271-11.5K-RC   USD 0.15   EUR 0.11
-   3   electronics   1x y-axis motor option 1.4A (Gecko + Nanotec:ST5918M1008-B or LinE:WO-5718M-04ED), 1x x-axis motor option 1.35A  (Gecko + LinE:WO-4118S-04E)
+   3   electronics   DriveBoard component (1x y-axis motor option 1.4A (Gecko + Nanotec:ST5918M1008-B or LinE:WO-5718M-04ED), 1x x-axis motor option 1.35A  (Gecko + LinE:WO-4118S-04E) )
    10   extra   extra
 resistor 20 KOhm   Mouser   271-20K-RC   USD 0.15   EUR 0.11
-   2   electronics   y-axis motor option 2.1A (Gecko + Nanotec:ST5918M3008-B or LinE:WO-5718M-02ED)
+   2   electronics   DriveBoard component (y-axis motor option 2.1A (Gecko + Nanotec:ST5918M3008-B or LinE:WO-5718M-02ED) )
    1   extra   extra
-resistor 6.49 KOhm   Mouser   271-6.49K-RC   EUR 0.11
-   2   electronics   1x voltage divider, 1x x-axis motor option 0.84A (Gecko + Nanotec:ST4118M1206-A)
+resistor 6.49 KOhm   Mouser   271-6.49K-RC   USD 0.15   EUR 0.11
+   2   electronics   DriveBoard component (1x voltage divider, 1x x-axis motor option 0.84A (Gecko + Nanotec:ST4118M1206-A))
    10   extra   extra
 resistor 12.7 KOhm   Mouser   271-12.7K-RC   USD 0.15
-   1   electronics   x-axis motor option 1.5A  (Gecko + LinE:WO-4118S-01)
+   1   electronics   DriveBoard component (x-axis motor option 1.5A  (Gecko + LinE:WO-4118S-01) )
    10   extra   extra
 cable tie, 2.5x100mm, white   Mouser   BT1M-M10   USD 0.06   EUR 0.05
    4   y-drive   belt to cart
@@ -710,7 +729,7 @@ e-stop SPST block   Mouser   642-A0150B   USD 8   EUR 6
    1   electronics   e-stop
 e-stop button 40mm   Mouser   642-A01ESSP3   USD 21   EUR 11
    1   electronics   e-stop
-heat shrink tubing set   Mouser   526-HS-ASST-9   USD 16   EUR 11.82
+heat shrink tubing set   Mouser   562-Q2ZQK101-180   USD 20   EUR 16.0
    1   electronics   cable to sensor, stepper, laser
 limit switch   Mouser   D2SW-3L2MS   USD 5.2   EUR 5
    6   electronics   4x limit for x/y-axis, 2x door
@@ -720,7 +739,9 @@ power cable   Mouser   397002-01   USD 7
 power cable   Mouser   364002-D01   EUR 6
    3   electronics   1x power cable, 2x wiring internals
 power entry module C-14   Mouser   161-R30148-E   USD 2.5   EUR 2
-   3   electronics   1x entry panel, 1x DriveBoard entry, 1x DriveBoard2Laser
+   2   electronics   1x DriveBoard entry, 1x DriveBoard2Laser
+power entry module C-14, filtered   Mouser   5110.1033.1   USD 16   EUR 13
+   1   electronics   1x entry panel
 rubber tape 0.75"x30mil   Mouser   2155-3/4x22FT-20rls   USD 5   EUR 4
    1   optics-laser   between laser tube and mounts
 ethernet entry module   Mouser   PX0833/E   USD 7.85   EUR 6.15
@@ -733,8 +754,6 @@ headers, 5.08mm, 6pos   Mouser   10-08-1061   USD 1.6   EUR 1.4
    6   electronics   Gecko socket
 headers, 2.54mm, 44ps   Mouser   10-89-7442   USD 3.7   EUR 3.2
    2   electronics   BeagleBone socket
-BeagleBone   Mouser   595-BEAGLEBONE-000   USD 90   EUR 75
-   1   electronics   ethernet interface
 
 
 ### ebay
