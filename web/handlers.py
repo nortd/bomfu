@@ -10,11 +10,19 @@
 """
 import json
 import httpagentparser
+from google.appengine.ext import ndb
+
 from boilerplate.models import User
 from boilerplate.lib.basehandler import BaseHandler
 from boilerplate.lib.basehandler import user_required
 
 from web.models import Bom, Part
+
+import logging as log
+
+# logging system
+log.basicConfig(level=log.DEBUG)
+# debug, info, warn, error, fatal, basicConfig
 
 
 
@@ -166,20 +174,51 @@ class BomEditHandler(BaseHandler):
                     raw.append('   '+part.supplier_currencies[i])
                     if part.supplier_countries[i]:
                         raw.append('   '+part.supplier_currencies[i])
-                    raw.append('   %0.2f' % part.supplier_prices[i])
+                    raw.append(' %0.2f' % part.supplier_prices[i])
                     if part.supplier_urls[i]:
                         raw.append('   '+part.supplier_urls[i])                    
                     raw.append('\n')
                 for i in range(len(part.subsystem_names)):
-                    raw.append('   '+str(part.subsystem_quantities[i])+
+                    quantities = part.subsystem_quantities[i]
+                    if (quantities % 1) == 0:
+                        quantities = '%0.0f' % quantities
+                    else:
+                        quantities = '%0.2f' % quantities
+                    raw.append('   '+quantities+
                                '   '+part.subsystem_names[i]+
                                '   '+part.subsystem_specificuses[i]+
                                '\n')
-                rawparts.append(''.join(raw)[:-1])
+                rawparts.append({'id':part.key.id(), 'raw':''.join(raw)[:-1]})
             params['rawparts'] = rawparts
+            params['bom'] = bom
             return self.render_template('bom_edit.html', **params)
         else:
             self.abort(404)
+
+    def post(self, public_id):
+        """handle edit and delete requests."""
+        bom_id = self.request.get('bom_id')  # part to edit
+        edit_p = self.request.get('edit_p')  # part to edit
+        del_p = self.request.get('del_p')  # part to delete
+        if edit_p and bom_id:
+            # edit part
+            # part = Part.get_by_id(edit_p)
+            part = ndb.Key('Bom', long(bom_id), 'Part', long(edit_p)).get()
+            if part:
+                log.info("got an edit request")
+                self.abort(501)
+            else:
+                self.abort(404)
+        elif del_p and bom_id:
+            # delete part
+            part = ndb.Key('Bom', long(bom_id), 'Part', long(del_p)).get()
+            if part:
+                part.delete()
+                return '__ok__'
+            else:
+                self.abort(404)
+        else:
+            self.abort(501)
 
 
 
@@ -214,12 +253,17 @@ class BomRawHandler(BaseHandler):
                     raw.append('   '+part.supplier_currencies[i])
                     if part.supplier_countries[i]:
                         raw.append('   '+part.supplier_currencies[i])
-                    raw.append('   %0.2f' % part.supplier_prices[i])
+                    raw.append(' %0.2f' % part.supplier_prices[i])
                     if part.supplier_urls[i]:
                         raw.append('   '+part.supplier_urls[i])                    
                     raw.append('\n')
                 for i in range(len(part.subsystem_names)):
-                    raw.append('   '+str(part.subsystem_quantities[i])+
+                    quantities = part.subsystem_quantities[i]
+                    if (quantities % 1) == 0:
+                        quantities = '%0.0f' % quantities
+                    else:
+                        quantities = '%0.2f' % quantities
+                    raw.append('   '+quantities+
                                '   '+part.subsystem_names[i]+
                                '   '+part.subsystem_specificuses[i]+
                                '\n')

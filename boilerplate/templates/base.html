@@ -40,7 +40,7 @@
        Modernizr enables HTML5 elements & feature detects for optimal performance. -->
     <script src="/boilerplate/js/libs/modernizr-2.6.1.min.js"></script>
 </head>
-<body>
+<body {% block body_attr %}{% endblock %}>
     <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you support IE 6.
            chromium.org/developers/how-tos/chrome-frame-getting-started -->
     <!--[if lt IE 8]>
@@ -131,6 +131,7 @@
         {% endblock %}
 
         <div id="content" class="container xled">
+            {% block breadcrumbs %}{% endblock %}
             {% block header %}
             <header class="navbar" id="overview">
                 {% block header_title_lead %}

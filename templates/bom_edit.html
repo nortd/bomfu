@@ -4,12 +4,184 @@
     Edit BOM
 {% endblock %}
 
+{% block body_attr %}
+spellcheck="false"
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+    <li><a href="#">Home</a> <span class="divider">/</span></li>
+    <li><a href="#">My BOMs</a> <span class="divider">/</span></li>
+    <li class="active">Edit BOM</li>
+    </ul>
+{% endblock %}
+
+
 {% block content %}
     
 {% for part in rawparts %}
-<pre>
-{{ part }}
-</pre>
+<!-- <a name="{{part['id']}}"></a> -->
+<div id="part{{part['id']}}" class="row">
+    <div class="span11 part">
+        <form class="edit" style="display:none; margin:0">
+            <textarea class="span11" style="padding-top:9.5px"></textarea>
+        </form>
+        <pre class="content">{{ part['raw'] }}</pre>
+        <div class="alert alert-info help" style="display:none">
+            <h3>Help</h3>
+            <pre class="helptxt_slot"></pre>
+        </div>
+    </div>
+    <div class="partid" style="display:none">{{ part['id'] }}</div>
+    <div class="btn-group btn-group-vertical span1" style="margin-bottom:10px">
+        <a href="#" class="btn span1 edit"><i class="icon-pencil"></i> <span>Edit</span></a>
+        <a href="#" class="btn btn-primary span1 save" style="display:none"><i class="icon-pencil"></i> <span>Save</span></a>
+        <a href="#" class="btn btn-warning span1 reallydelete" style="display:none"><i class="icon-trash"></i>Delete</a>
+        <a href="#" class="btn span1 delete"><i class="icon-trash"></i> <span>Delete</span></a>
+        <a href="#" class="btn span1 help"><i class="icon-info-sign"></i> <span>Help</span></a>
+    </div>
+</div>
 {% endfor %}
+
+
+<pre id="helptxt" style="display:none">
+part_name   group
+   * note
+   # designator
+   @ manufacturer   part_num
+   $ supplier   order_num   currency price   url
+   quantity   subsystem   usage_dsecription
+</pre>
+
+
+
+
+{% block mediaJS %}
+<script type="text/javascript">
+var helptxt = 
+$(document).ready(function(){
+    // Edit button
+    $('a.edit').toggle(function() {
+        var content = $(this).parent().siblings('div.part').children('pre.content')
+        var form = $(this).parent().siblings('div.part').children('form.edit')
+        var textarea = form.children('textarea')
+        textarea.height(content.height()+20);
+        textarea.val(content.text());
+        // textarea.css('padding', content.css('padding'));
+        // textarea.css('margin', content.css('margin'));
+        textarea.css('font-family', content.css('font-family'));
+        textarea.css('font-size', content.css('font-size'));
+        form.show();
+        textarea.focus()
+        content.hide();
+        // button states
+        $(this).children('span').text('Cancel')
+        $(this).siblings('a.save').show()
+        $(this).siblings('a.delete').hide()
+        return false;
+    }, function() {
+        var content = $(this).parent().siblings('div.part').children('pre.content')
+        var form = $(this).parent().siblings('div.part').children('form.edit')
+        form.hide();
+        content.show();
+        // button states
+        $(this).children('span').text('Edit')
+        $(this).siblings('a.save').hide()
+        $(this).siblings('a.delete').show()
+        $(this).siblings('a.save').removeClass('btn-danger');
+        $(this).siblings('a.save').addClass('btn-primary');
+        return false;
+    });
+    // Delete button
+    $('a.delete').toggle(function() {
+        var content = $(this).parent().siblings('div.part').children('pre')
+        var deldiv = $(this).parent().siblings('div.part').children('.delete')
+        deldiv.height(content.height()+20);
+        content.addClass('alert');
+        $(this).children('span').text('Cancel');
+        $(this).siblings('a.edit').hide()
+        $(this).siblings('a.reallydelete').show()
+        return false;
+    }, function() {
+        var content = $(this).parent().siblings('div.part').children('pre')
+        content.removeClass('alert');
+        $(this).children('span').text('Delete');
+        $(this).siblings('a.reallydelete').hide()
+        $(this).siblings('a.edit').show()
+        return false;
+    });
+    // Help button
+    $('a.help').toggle(function() {
+        var helpdiv = $(this).parent().siblings('div.part').children('.help')
+        helpdiv.children('.helptxt_slot').text($('pre#helptxt').text())
+        $('div.help').hide()  // hide others
+        $('a.help').children('span').text('Help');
+        helpdiv.show()
+        $(this).children('span').text('Hide');
+        return false;
+    }, function() {
+        var helpdiv = $(this).parent().siblings('div.part').children('.help')
+        helpdiv.hide()
+        helpdiv.children('.helptxt_slot').text('')
+        $(this).children('span').text('Help');
+        return false;
+    });
+    // Really Delete button
+    $('a.reallydelete').click(function() {
+        var button = $(this)
+        button.removeClass('btn-warning');
+        button.addClass('btn-danger');
+        var partid = button.parent().siblings('.partid').text();
+        $.ajax({
+            type: "POST",
+            url: "{{ uri_for('bom-edit', public_id=bom.public_id) }}",
+            data: {'_csrf_token':'{{ csrf_token() }}',
+                   'del_p':partid,
+                   'bom_id':'{{ bom.key.id() }}' },
+            // dataType: "json",
+            success: function (data) {
+              // delete ok
+              $('div#part' + partid).slideUp()
+            },
+            error: function (data) {
+              // delete failed
+              button.addClass('btn-warning');
+              button.removeClass('btn-danger');
+            }
+        });
+        return false;
+    });
+    // Save button
+    $('a.save').click(function() {
+        var button = $(this)
+        button.removeClass('btn-primary');
+        button.removeClass('btn-danger');
+        button.addClass('btn-warning');
+        var partid = button.parent().siblings('.partid').text();
+        $.ajax({
+            type: "POST",
+            url: "{{ uri_for('bom-edit', public_id=bom.public_id) }}",
+            data: {'_csrf_token':'{{ csrf_token() }}',
+                   'edit_p':partid,
+                   'bom_id':'{{ bom.key.id() }}' },
+            // dataType: "json",
+            success: function (data) {
+              // save ok
+              // $('div#part' + partid).slideUp()
+              button.removeClass('btn-danger');
+              button.removeClass('btn-warning');
+            },
+            error: function (data) {
+              // edit failed
+              button.addClass('btn-danger');
+              button.removeClass('btn-warning');
+            }
+        });
+        return false;
+    });
+});  // ready
+</script>
+{% endblock %}
+
 
 {% endblock %}
