@@ -36,7 +36,25 @@ log.basicConfig(level=log.DEBUG)
 # debug, info, warn, error, fatal, basicConfig
 
 
-def parse(bomstring):
+
+class ParseError(Exception):
+    """Exception raised for parse errors.
+
+    Attributes:
+        line -- line in which the error occurred
+        msg  -- explanation of the error
+    """
+    def __init__(self, line_num, line, msg):
+        self.line_num = line_num
+        self.line = line
+        self.msg = msg
+
+    def __str__(self):
+        return "Parse Error: %s -- Line (%s): %s" % (self.msg, self.line_num, self.line)
+
+
+
+def parse(bomstring, max_parts=None):
     """
     Reads:
 
@@ -99,7 +117,9 @@ def parse(bomstring):
     part_entry_manufacturers = None
     part_entry_suppliers = None
     part_entry_usages = None
+    line_counter = 0
     for line in lines:
+        line_counter += 1
         if line and line[0] != '#' and line[0] != '!':
             if line[:3] == '   ':  # auxilliary line
                 auxline = line[3:].strip()
@@ -116,8 +136,7 @@ def parse(bomstring):
                         part_num = manu_parts[1].strip()
                         part_entry_manufacturers.append([manufacturer, part_num])
                     else:
-                        log.error("invalid manufacturer line")
-                        break
+                        raise ParseError(line_counter, line, "invalid manufacturer line")
                 elif auxline[0] == '$':  # supplier line
                     # @ supplier_name   order_num[##package_count]   currency[-country] amount   [explicit_url]
                     supplier_parts = auxline.split('   ')
@@ -137,8 +156,7 @@ def parse(bomstring):
                             if len(ordernum_parts) == 2:
                                 package_count = int(ordernum_parts[1])
                         else:
-                            log.error("invalid order_num")
-                            break
+                            raise ParseError(line_counter, line, "invalid order_num")
 
                         # pricing
                         amount = None
@@ -154,16 +172,13 @@ def parse(bomstring):
                                 if len(location_parts) == 2:
                                     country = location_parts[1]
                             else:
-                                log.error("invalid location")
-                                break
+                                raise ParseError(line_counter, line, "invalid location")
                         else:
-                            log.error("invalid pricing")
-                            break
+                            raise ParseError(line_counter, line, "invalid pricing")
 
                         part_entry_suppliers.append([supplier, order_num, package_count, currency, country, amount, explicit_url])
                     else:
-                        log.error("invalid supplier line")
-                        break                    
+                        raise ParseError(line_counter, line, "invalid supplier line")
                 elif auxline[0] in ('0','1','2','3','4','5','6','7','8','9','.'):  # usage line
                     # quantity   subsystem   specific_use
                     usage_components = auxline.split('   ')
@@ -173,11 +188,9 @@ def parse(bomstring):
                         specific_use = usage_components[2].strip()
                         part_entry_usages.append([quantity, subsystem, specific_use])
                     else:
-                        log.error("invalid usage line")
-                        break                     
+                        raise ParseError(line_counter, line, "invalid usage line")
                 else:
-                    log.error('invalid auxilliary line')
-                    break
+                    raise ParseError(line_counter, line, "invalid auxilliary line")
             else:  # master line
                 # part_name[, units=mm]  [part_group]
                 line_parts = line.strip().split("   ")
@@ -185,6 +198,8 @@ def parse(bomstring):
                     if line_parts[0] == '':
                         # was just an empty filler line
                         continue
+                    if max_parts and len(parts) >= max_parts:
+                        raise ParseError(line_counter, line, "more parts than requested")
                     # create an empty part entry
                     # [name, quantity_units, group, notes, designators, manufacturers suppliers, usages]
                     parts.append([None,'','',[],[],[],[],[]])
@@ -209,8 +224,7 @@ def parse(bomstring):
                     part_entry[1] = quantity_units
                     part_entry[2] = part_group
                 else:
-                    log.error("invalid master line")
-                    break
+                    raise ParseError(line_counter, line, "invalid master line")
              
     # pprint(parts)
     # pprint(stats_num_items)

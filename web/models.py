@@ -210,10 +210,10 @@ class Part(ndb.Model):
     pricepoints_cached = ndb.FloatProperty(repeated=True)  # index matches supplier_names, supplier_currencies
     part_group = ndb.StringProperty()
     quantity_units = ndb.StringProperty()  # None means pieces
-    # designators
-    designator_list = ndb.StringProperty(repeated=True)
     # notes
     note_list = ndb.StringProperty(repeated=True)
+    # designators
+    designator_list = ndb.StringProperty(repeated=True)
     # manufacturers
     manufacturer_names = ndb.StringProperty(repeated=True)
     manufacturer_partnums = ndb.StringProperty(repeated=True)

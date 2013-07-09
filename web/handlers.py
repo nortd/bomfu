@@ -148,11 +148,14 @@ class BomEditHandler(BaseHandler):
         params = {}
         bom = Bom.query(Bom.public_id == public_id).get()
         if bom:
-            parts = Part.query(ancestor=bom.key).order(Part.name).fetch()
+            parts = Part.query(ancestor=bom.key).order(Part.create_time).fetch()
             rawparts = []
             for part in parts:
                 raw = []
-                raw.append(part.name+'   '+part.quantity_units+'   '+part.part_group+'\n')
+                quantity_units = ''
+                if part.quantity_units:
+                    quantity_units = ', units='+part.quantity_units
+                raw.append(part.name+quantity_units+'   '+part.part_group+'\n')
                 for note in part.note_list:
                     raw.append('   * '+note+'\n')
                 for designator in part.designator_list:
@@ -197,16 +200,64 @@ class BomEditHandler(BaseHandler):
 
     def post(self, public_id):
         """handle edit and delete requests."""
+        self.response.headers.add_header('content-type', 'application/json', charset='utf-8')
         bom_id = self.request.get('bom_id')  # part to edit
         edit_p = self.request.get('edit_p')  # part to edit
+        bomfu = self.request.get('bomfu')
         del_p = self.request.get('del_p')  # part to delete
-        if edit_p and bom_id:
+        if edit_p and bom_id and bomfu:
             # edit part
             # part = Part.get_by_id(edit_p)
             part = ndb.Key('Bom', long(bom_id), 'Part', long(edit_p)).get()
             if part:
-                log.info("got an edit request")
-                self.abort(501)
+                # log.info(bomfu)
+                import bomfu_parser
+                try:
+                    bom_json = bomfu_parser.parse(bomfu, 1)
+                except bomfu_parser.ParseError as ex:
+                    ret = {"error":str(ex)}
+                    self.response.out.write(json.dumps(ret)) 
+                    return
+                if len(bom_json) == 1:
+                    p = bom_json[0]
+                    # write to part
+                    part.name = p[0]
+                    part.quantity_units = p[1]
+                    part.part_group = p[2]
+                    part.note_list = p[3]
+                    part.designator_list = p[4]
+                    part.manufacturer_names = []
+                    part.manufacturer_partnums = []
+                    for manu in p[5]:
+                        part.manufacturer_names.append(manu[0])
+                        part.manufacturer_partnums.append(manu[1])
+                    part.supplier_names = []
+                    part.supplier_ordernums = []
+                    part.supplier_packagecounts = []
+                    part.supplier_currencies = []
+                    part.supplier_countries = []
+                    part.supplier_prices = []
+                    part.supplier_urls = []
+                    for supplier in p[6]:
+                        part.supplier_names.append(supplier[0])
+                        part.supplier_ordernums.append(supplier[1])
+                        part.supplier_packagecounts.append(supplier[2])
+                        part.supplier_currencies.append(supplier[3])
+                        part.supplier_countries.append(supplier[4])
+                        part.supplier_prices.append(supplier[5])
+                        part.supplier_urls.append(supplier[6])
+                    part.subsystem_quantities = []
+                    part.subsystem_names = []
+                    part.subsystem_specificuses = []
+                    for subsys in p[7]:
+                        part.subsystem_quantities.append(subsys[0])
+                        part.subsystem_names.append(subsys[1])
+                        part.subsystem_specificuses.append(subsys[2])
+                    part.put()
+                    self.response.out.write('{"error":false}') 
+                else:
+                    ret = {"error":"Failed to parse bomfu data: %s" % bomfu}
+                    self.response.out.write(json.dumps(ret)) 
             else:
                 self.abort(404)
         elif del_p and bom_id:
@@ -214,7 +265,7 @@ class BomEditHandler(BaseHandler):
             part = ndb.Key('Bom', long(bom_id), 'Part', long(del_p)).get()
             if part:
                 part.delete()
-                return '__ok__'
+                self.response.out.write('{"error":false}') 
             else:
                 self.abort(404)
         else:
@@ -231,7 +282,10 @@ class BomRawHandler(BaseHandler):
             parts = Part.query(ancestor=bom.key).order(Part.name).fetch()
             raw = []
             for part in parts:
-                raw.append(part.name+'   '+part.quantity_units+'   '+part.part_group+'\n')
+                quantity_units = ''
+                if part.quantity_units:
+                    quantity_units = ', units='+part.quantity_units
+                raw.append(part.name+quantity_units+'   '+part.part_group+'\n')
                 for note in part.note_list:
                     raw.append('   * '+note+'\n')
                 for designator in part.designator_list:

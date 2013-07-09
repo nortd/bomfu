@@ -8,38 +8,34 @@
 spellcheck="false"
 {% endblock %}
 
-{% block breadcrumbs %}
-    <ul class="breadcrumb">
-    <li><a href="#">Home</a> <span class="divider">/</span></li>
-    <li><a href="#">My BOMs</a> <span class="divider">/</span></li>
-    <li class="active">Edit BOM</li>
-    </ul>
-{% endblock %}
-
 
 {% block content %}
     
 {% for part in rawparts %}
 <!-- <a name="{{part['id']}}"></a> -->
-<div id="part{{part['id']}}" class="row">
-    <div class="span11 part">
+<div id="part{{part['id']}}" class="well" style="padding:10px; margin-bottom:10px">
+<div class="row">
+    <div class="span10 part">
         <form class="edit" style="display:none; margin:0">
-            <textarea class="span11" style="padding-top:9.5px"></textarea>
+            <textarea class="span10" style="padding-top:9.5px; margin:0"></textarea>
         </form>
-        <pre class="content">{{ part['raw'] }}</pre>
-        <div class="alert alert-info help" style="display:none">
+        <pre class="content" style="border:none; background-color:transparent; padding:0; margin:0">{{ part['raw'] }}</pre>
+        <div class="alert alert-danger error" style="display:none; margin-top:10px; margin-bottom:0px">
+        </div>
+        <div class="alert alert-info help" style="display:none; margin-top:10px; margin-bottom:0px">
             <h3>Help</h3>
             <pre class="helptxt_slot"></pre>
         </div>
     </div>
     <div class="partid" style="display:none">{{ part['id'] }}</div>
-    <div class="btn-group btn-group-vertical span1" style="margin-bottom:10px">
+    <div class="btn-group btn-group-vertical span1">
         <a href="#" class="btn span1 edit"><i class="icon-pencil"></i> <span>Edit</span></a>
         <a href="#" class="btn btn-primary span1 save" style="display:none"><i class="icon-pencil"></i> <span>Save</span></a>
         <a href="#" class="btn btn-warning span1 reallydelete" style="display:none"><i class="icon-trash"></i>Delete</a>
         <a href="#" class="btn span1 delete"><i class="icon-trash"></i> <span>Delete</span></a>
         <a href="#" class="btn span1 help"><i class="icon-info-sign"></i> <span>Help</span></a>
     </div>
+</div>
 </div>
 {% endfor %}
 
@@ -90,6 +86,10 @@ $(document).ready(function(){
         $(this).siblings('a.delete').show()
         $(this).siblings('a.save').removeClass('btn-danger');
         $(this).siblings('a.save').addClass('btn-primary');
+        // error alert
+        var errordiv = $(this).parent().siblings('div.part').children('.error');
+        errordiv.text('');
+        errordiv.hide();
         return false;
     });
     // Delete button
@@ -158,23 +158,47 @@ $(document).ready(function(){
         button.removeClass('btn-danger');
         button.addClass('btn-warning');
         var partid = button.parent().siblings('.partid').text();
+        var form = button.parent().siblings('div.part').children('form.edit')
+        var bomfu = form.children('textarea').val()
         $.ajax({
             type: "POST",
             url: "{{ uri_for('bom-edit', public_id=bom.public_id) }}",
             data: {'_csrf_token':'{{ csrf_token() }}',
                    'edit_p':partid,
-                   'bom_id':'{{ bom.key.id() }}' },
-            // dataType: "json",
+                   'bom_id':'{{ bom.key.id() }}',
+                   'bomfu':bomfu},
+            dataType: 'json',
             success: function (data) {
-              // save ok
-              // $('div#part' + partid).slideUp()
-              button.removeClass('btn-danger');
-              button.removeClass('btn-warning');
+                if (data.error == false) {
+                    // save ok
+                    // update content
+                    var content = button.parent().siblings('div.part').children('pre.content')
+                    var form = button.parent().siblings('div.part').children('form.edit')
+                    content.text(form.children('textarea').val())
+                    // button stated
+                    button.siblings('a.edit').trigger('click')
+                    button.removeClass('btn-danger');
+                    button.removeClass('btn-warning');
+                    button.siblings('a.edit').addClass('btn-success')
+                    setTimeout(function(){
+                        button.siblings('a.edit').removeClass('btn-success')
+                    }, 1000);
+                    // error box cleanup
+                    var errordiv = button.parent().siblings('div.part').children('.error');
+                    errordiv.text('');
+                    errordiv.hide();
+                } else {
+                    // save failed, show error
+                    var errordiv = button.parent().siblings('div.part').children('.error');
+                    errordiv.text(data.error);
+                    errordiv.show();
+                    button.addClass('btn-danger');
+                }
             },
             error: function (data) {
-              // edit failed
-              button.addClass('btn-danger');
-              button.removeClass('btn-warning');
+                // edit failed
+                button.addClass('btn-danger');
+                button.removeClass('btn-warning');
             }
         });
         return false;
