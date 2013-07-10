@@ -99,8 +99,24 @@ class BomEditView(BaseHandler):
 
 class BomEditFields(BaseHandler):
     def post(self, bom_id):
-        pass
-
+        name = self.request.get('name')
+        public = self.request.get('public')
+        bom = Bom.get_by_id(long(bom_id))
+        if bom:
+            if name:
+                bom.name = name
+            if public:
+                if public == 'true':
+                    bom.public = True
+                elif public == 'false':
+                    bom.public = False
+            if name or public:
+                bom.put()
+            self.response.headers.add_header('content-type', 'application/json', 
+                                             charset='utf-8')
+            self.response.out.write('{"error":false}')
+        else:
+            self.abort(404)
 
 
 

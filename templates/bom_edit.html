@@ -15,12 +15,17 @@ spellcheck="false"
 
 <table class="table table-hover">
     <tr>
-        <td class="" style="padding-top:12px; text-align:right">Name:</td>
-        <td>{{ form.name }}</td>
+        <td class="" style="padding-top:24px; text-align:right">Name:</td>
+        <td>
+            <input id="name_field" type="text" value="{{ bom.name }}" style="margin-top:11px">
+            <a id="name_field" class="btn" href="#" style="display:none">Save</a>
+        </td>
     </tr>
     <tr>
         <td class="" style="padding-top:12px; text-align:right">Public:</td>
-        <td>{{ form.public }}</td>
+        <td>
+            <input id="public_check" type="checkbox" value="">
+        </td>
     </tr>
     <tr>
         <td class="" style="padding-top:12px; text-align:right">Images:</td>
@@ -50,7 +55,7 @@ spellcheck="false"
         </div>
     </div>
     <div class="btn-group btn-group-vertical span1">
-        <a href="#" class="btn span1 add_part"><i class="icon-pencil"></i> <span>Add Part</span></a>
+        <a href="#" class="btn add_part span1"><i class="icon-pencil"></i> <span>Add</span></a>
         <a href="#" class="btn btn-primary span1 add_part_save" style="display:none"><i class="icon-pencil"></i> <span>Save</span></a>
     </div>
 </div>
@@ -102,6 +107,84 @@ part_name   group
 <script type="text/javascript">
 var helptxt = 
 $(document).ready(function(){
+    // set form fields
+    $('input#name_field').val("{{bom.name}}");
+    if ("{{bom.public}}" == "True") {
+        $('input#public_check').prop('checked', true);
+    } else {
+        $('input#public_check').prop('checked', false);
+    }
+    // name field
+    $('input#name_field').keydown(function(){
+        $('a#name_field').show();
+    });
+    // name field save button
+    $('a#name_field').click(function(){
+        var button = $(this);
+        var row = button.parent().parent();
+        button.addClass('btn-warning');
+        var name = $('input#name_field').val();
+        $.ajax({
+            type: "POST",
+            url: "/b/{{ bom.key.id() }}/editfields",
+            data: {'_csrf_token':'{{ csrf_token() }}',
+                   'name':name},
+            dataType: 'json',
+            success: function (data) {
+                button.removeClass('btn-warning');
+                if (data.error == false) {
+                    // ok
+                    button.removeClass('btn-warning');
+                    button.removeClass('btn-danger');
+                    button.hide();
+                    row.addClass('success');
+                    setTimeout(function(){
+                        row.removeClass('success');
+                    }, 1000);
+                } else {
+                    button.addClass('btn-danger');
+                    button.removeClass('btn-warning');
+                }
+            },
+            error: function (data) {
+                // failed
+                button.addClass('btn-danger');
+                button.removeClass('btn-warning');
+            }
+        });
+        return false;
+    });
+    // public checkbox
+    $('input#public_check').change(function(){
+        var check = $(this);
+        var checkstate = check.is(':checked')
+        var row = check.parent().parent();
+        $.ajax({
+            type: "POST",
+            url: "/b/{{ bom.key.id() }}/editfields",
+            data: {'_csrf_token':'{{ csrf_token() }}',
+                   'public':checkstate},
+            dataType: 'json',
+            success: function (data) {
+                if (data.error == false) {
+                    // ok
+                    row.removeClass('warning');
+                    row.addClass('success');
+                    setTimeout(function(){
+                        row.removeClass('success');
+                    }, 1000);
+                } else {
+                    check.prop('checked', !checkstate);
+                    row.addClass('warning');
+                }
+            },
+            error: function (data) {
+                // failed
+                check.prop('checked', !checkstate);
+                row.addClass('warning');
+            }
+        });
+    });
     // Add button
     $('a.add_part').toggle(function() {
         var content = $(this).parent().siblings('div.add_part').children('.content')
