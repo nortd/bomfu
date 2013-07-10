@@ -1,7 +1,8 @@
 {% extends base_layout %}
+{% import 'admin/macros.html' as lib with context %}
 
 {% block header_title %}
-    Edit BOM
+    <i class="icon-pencil"></i> Edit BOM
 {% endblock %}
 
 {% block body_attr %}
@@ -10,7 +11,16 @@ spellcheck="false"
 
 
 {% block content %}
-    
+
+{{ bom.name }}
+<div>
+    create_time: {{ bom.create_time.strftime('%Y-%b-%d') }}
+    change_time: {{ bom.change_time.strftime('%Y-%b-%d') }}
+</div>
+<div>
+    {{ lib.render_form(form, uri_for('bom-edit-fields', bom_id=bom.key.id()), btn='Update') }}
+</div>
+
 {% for part in rawparts %}
 <!-- <a name="{{part['id']}}"></a> -->
 <div id="part{{part['id']}}" class="well" style="padding:10px; margin-bottom:10px">
@@ -134,11 +144,9 @@ $(document).ready(function(){
         var partid = button.parent().siblings('.partid').text();
         $.ajax({
             type: "POST",
-            url: "{{ uri_for('bom-edit', public_id=bom.public_id) }}",
-            data: {'_csrf_token':'{{ csrf_token() }}',
-                   'del_p':partid,
-                   'bom_id':'{{ bom.key.id() }}' },
-            // dataType: "json",
+            url: "/p/{{ bom.key.id() }}/delete/"+partid,
+            data: {'_csrf_token':'{{ csrf_token() }}'},
+            dataType: "json",
             success: function (data) {
               // delete ok
               $('div#part' + partid).slideUp()
@@ -162,10 +170,8 @@ $(document).ready(function(){
         var bomfu = form.children('textarea').val()
         $.ajax({
             type: "POST",
-            url: "{{ uri_for('bom-edit', public_id=bom.public_id) }}",
+            url: "/p/{{ bom.key.id() }}/edit/"+partid,
             data: {'_csrf_token':'{{ csrf_token() }}',
-                   'edit_p':partid,
-                   'bom_id':'{{ bom.key.id() }}',
                    'bomfu':bomfu},
             dataType: 'json',
             success: function (data) {
