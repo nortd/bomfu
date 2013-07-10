@@ -1,5 +1,4 @@
 {% extends base_layout %}
-{% import 'admin/macros.html' as lib with context %}
 
 {% block header_title %}
     <i class="icon-pencil"></i> Edit BOM
@@ -12,17 +11,54 @@ spellcheck="false"
 
 {% block content %}
 
-{{ bom.name }}
-<div>
-    create_time: {{ bom.create_time.strftime('%Y-%b-%d') }}
-    change_time: {{ bom.change_time.strftime('%Y-%b-%d') }}
+
+
+<table class="table table-hover">
+    <tr>
+        <td class="" style="padding-top:12px; text-align:right">Name:</td>
+        <td>{{ form.name }}</td>
+    </tr>
+    <tr>
+        <td class="" style="padding-top:12px; text-align:right">Public:</td>
+        <td>{{ form.public }}</td>
+    </tr>
+    <tr>
+        <td class="" style="padding-top:12px; text-align:right">Images:</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="span2" style="text-align:right">Last Updated:</td>
+        <td>
+            {{ bom.change_time.strftime('%Y-%b-%d') }}
+        </td>
+    </tr>
+</table>
+
+
+<div class="well" style="padding:10px; margin-bottom:10px">
+<div class="row">
+    <div class="span10 add_part">
+        <form class="edit" style="display:none; margin:0">
+            <textarea class="span10" style="height:200px; padding-top:9.5px; margin:0"></textarea>
+        </form>
+        <div class="content" style="font-size:24px; font-weight:bold; margin-top:6px">Parts</div>
+        <div class="alert alert-danger error" style="display:none; margin-top:10px; margin-bottom:0px">
+        </div>
+        <div class="alert alert-info help" style="display:none; margin-top:10px; margin-bottom:0px">
+            <h3>Help</h3>
+            <pre class="helptxt_slot"></pre>
+        </div>
+    </div>
+    <div class="btn-group btn-group-vertical span1">
+        <a href="#" class="btn span1 add_part"><i class="icon-pencil"></i> <span>Add Part</span></a>
+        <a href="#" class="btn btn-primary span1 add_part_save" style="display:none"><i class="icon-pencil"></i> <span>Save</span></a>
+    </div>
 </div>
-<div>
-    {{ lib.render_form(form, uri_for('bom-edit-fields', bom_id=bom.key.id()), btn='Update') }}
 </div>
 
+
+
 {% for part in rawparts %}
-<!-- <a name="{{part['id']}}"></a> -->
 <div id="part{{part['id']}}" class="well" style="padding:10px; margin-bottom:10px">
 <div class="row">
     <div class="span10 part">
@@ -66,6 +102,89 @@ part_name   group
 <script type="text/javascript">
 var helptxt = 
 $(document).ready(function(){
+    // Add button
+    $('a.add_part').toggle(function() {
+        var content = $(this).parent().siblings('div.add_part').children('.content')
+        var form = $(this).parent().siblings('div.add_part').children('form.edit')
+        var textarea = form.children('textarea')
+        // textarea.height(content.height()+20);
+        // textarea.val(content.text());
+        // textarea.css('font-family', content.css('font-family'));
+        // textarea.css('font-size', content.css('font-size'));
+        textarea.text($('pre#helptxt').text())
+        form.show();
+        textarea.focus()
+        content.hide();
+        // button states
+        $(this).children('span').text('Cancel')
+        $(this).siblings('a.add_part_save').show()
+        return false;
+    }, function() {
+        var content = $(this).parent().siblings('div.add_part').children('.content')
+        var form = $(this).parent().siblings('div.add_part').children('form.edit')
+        form.hide();
+        content.show();
+        // button states
+        $(this).children('span').text('Edit')
+        $(this).siblings('a.add_part_save').hide()
+        $(this).siblings('a.add_part_save').removeClass('btn-danger');
+        $(this).siblings('a.add_part_save').addClass('btn-primary');
+        // error alert
+        var errordiv = $(this).parent().siblings('div.add_part').children('.error');
+        errordiv.text('');
+        errordiv.hide();
+        return false;
+    });
+    // Add Save button
+    $('a.add_part_save').click(function() {
+        var button = $(this)
+        button.removeClass('btn-primary');
+        button.removeClass('btn-danger');
+        button.addClass('btn-warning');
+        var form = button.parent().siblings('div.add_part').children('form.edit')
+        var bomfu = form.children('textarea').val()
+        $.ajax({
+            type: "POST",
+            url: "/p/{{ bom.key.id() }}/add",
+            data: {'_csrf_token':'{{ csrf_token() }}',
+                   'bomfu':bomfu},
+            dataType: 'json',
+            success: function (data) {
+                button.removeClass('btn-warning');
+                if (data.error == false) {
+                    // add ok
+                    // update content
+                    var content = button.parent().siblings('div.part').children('pre.content')
+                    var form = button.parent().siblings('div.part').children('form.edit')
+                    content.text(form.children('textarea').val())
+
+                    // button stated
+                    button.siblings('a.edit').trigger('click')
+                    button.removeClass('btn-danger');
+                    button.siblings('a.edit').addClass('btn-success')
+                    setTimeout(function(){
+                        button.siblings('a.edit').removeClass('btn-success')
+                    }, 1000);
+                    // error box cleanup
+                    var errordiv = button.parent().siblings('div.add_part').children('.error');
+                    errordiv.text('');
+                    errordiv.hide();
+                } else {
+                    // add failed, show error
+                    var errordiv = button.parent().siblings('div.add_part').children('.error');
+                    errordiv.text(data.error);
+                    errordiv.show();
+                    button.addClass('btn-danger');
+                }
+            },
+            error: function (data) {
+                // add failed
+                button.addClass('btn-danger');
+                button.removeClass('btn-warning');
+            }
+        });
+        return false;
+    });
     // Edit button
     $('a.edit').toggle(function() {
         var content = $(this).parent().siblings('div.part').children('pre.content')

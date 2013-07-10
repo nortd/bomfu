@@ -298,6 +298,8 @@ class Part(ndb.Model):
         def put_in_transaction():
             ndb.put_multi(items_to_put)
             super(Part, self).put()
+            # update bom change_time
+            self.bom_key.get().put()
 
         # print '>>>>>>>', self, '<<<<<'
         put_in_transaction()
@@ -346,6 +348,8 @@ class Part(ndb.Model):
         def del_in_transaction():
             ndb.delete_multi(keys_to_del)                                    
             self.key.delete()
+            # update bom change_time
+            self.bom_key.get().put()
 
         del_in_transaction()
 

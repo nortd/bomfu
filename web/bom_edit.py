@@ -85,7 +85,7 @@ class BomEditView(BaseHandler):
             params['rawparts'] = rawparts
             params['bom'] = bom
             # prime form
-            self.form.process(obj=bom)
+            # self.form.process(obj=bom)
             return self.render_template('bom_edit.html', **params)
         else:
             self.abort(404)
@@ -106,7 +106,10 @@ class BomEditFields(BaseHandler):
 class PartAdd(BaseHandler):
     """Handle part additions."""
     def post(self, bom_id):
-        pass
+        self.response.headers.add_header('content-type', 'application/json', 
+                                         charset='utf-8')
+        # self.abort(500)
+        self.response.out.write('{"error":true}') 
 
 
 
