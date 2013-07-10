@@ -7,7 +7,7 @@ RedirectRoute: http://webapp-improved.appspot.com/api/webapp2_extras/routes.html
 from webapp2_extras.routes import RedirectRoute
 from web import handlers
 from web.boms import BomsHandler
-from web.bom_edit import BomEditView, BomEditFields, PartAdd, PartEdit, PartDelete
+from web.bom_edit import BomEditView, BomEditFields, PartEdit, PartDelete
 
 secure_scheme = 'https'
 
@@ -22,7 +22,6 @@ _routes = [
     RedirectRoute('/b/<public_id>/edit', BomEditView, name='bom-edit-view', strict_slash=True),
     # bom editing
     RedirectRoute('/b/<bom_id>/editfields', BomEditFields, name='bom-edit-fields', strict_slash=True),
-    RedirectRoute('/p/<bom_id>/add', PartAdd, name='part-add', strict_slash=True),
     RedirectRoute('/p/<bom_id>/edit/<part_id>', PartEdit, name='part-edit', strict_slash=True),
     RedirectRoute('/p/<bom_id>/delete/<part_id>', PartDelete, name='part-delete', strict_slash=True),
     # stuff

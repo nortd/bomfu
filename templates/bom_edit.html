@@ -109,8 +109,8 @@ $(document).ready(function(){
         var textarea = form.children('textarea')
         // textarea.height(content.height()+20);
         // textarea.val(content.text());
-        // textarea.css('font-family', content.css('font-family'));
-        // textarea.css('font-size', content.css('font-size'));
+        textarea.css('font-family', $('pre#helptxt').css('font-family'));
+        textarea.css('font-size', $('pre#helptxt').css('font-size'));
         textarea.text($('pre#helptxt').text())
         form.show();
         textarea.focus()
@@ -145,7 +145,7 @@ $(document).ready(function(){
         var bomfu = form.children('textarea').val()
         $.ajax({
             type: "POST",
-            url: "/p/{{ bom.key.id() }}/add",
+            url: "/p/{{ bom.key.id() }}/edit/null",
             data: {'_csrf_token':'{{ csrf_token() }}',
                    'bomfu':bomfu},
             dataType: 'json',
@@ -153,22 +153,28 @@ $(document).ready(function(){
                 button.removeClass('btn-warning');
                 if (data.error == false) {
                     // add ok
-                    // update content
-                    var content = button.parent().siblings('div.part').children('pre.content')
-                    var form = button.parent().siblings('div.part').children('form.edit')
-                    content.text(form.children('textarea').val())
-
-                    // button stated
-                    button.siblings('a.edit').trigger('click')
-                    button.removeClass('btn-danger');
-                    button.siblings('a.edit').addClass('btn-success')
+                    button.siblings('a.add_part').addClass('btn-success')
+                    button.removeClass('btn-danger')
+                    button.addClass('btn-success')
                     setTimeout(function(){
-                        button.siblings('a.edit').removeClass('btn-success')
-                    }, 1000);
-                    // error box cleanup
-                    var errordiv = button.parent().siblings('div.add_part').children('.error');
-                    errordiv.text('');
-                    errordiv.hide();
+                        location.reload()
+                    }, 100);
+                    // // update content
+                    // // make sure to also provide key !!!
+                    // var content = button.parent().siblings('div.part').children('pre.content')
+                    // var form = button.parent().siblings('div.part').children('form.edit')
+                    // content.text(form.children('textarea').val())
+                    // // button stated
+                    // button.siblings('a.edit').trigger('click')
+                    // button.removeClass('btn-danger');
+                    // button.siblings('a.edit').addClass('btn-success')
+                    // setTimeout(function(){
+                    //     button.siblings('a.edit').removeClass('btn-success')
+                    // }, 1000);
+                    // // error box cleanup
+                    // var errordiv = button.parent().siblings('div.add_part').children('.error');
+                    // errordiv.text('');
+                    // errordiv.hide();
                 } else {
                     // add failed, show error
                     var errordiv = button.parent().siblings('div.add_part').children('.error');

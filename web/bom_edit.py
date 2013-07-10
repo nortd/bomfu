@@ -38,7 +38,7 @@ class BomEditView(BaseHandler):
         params = {}
         bom = Bom.query(Bom.public_id == public_id).get()
         if bom:
-            parts = Part.query(ancestor=bom.key).order(Part.create_time).fetch()
+            parts = Part.query(ancestor=bom.key).order(-Part.create_time).fetch()
             rawparts = []
             for part in parts:
                 raw = []
@@ -103,26 +103,21 @@ class BomEditFields(BaseHandler):
 
 
 
-class PartAdd(BaseHandler):
-    """Handle part additions."""
-    def post(self, bom_id):
-        self.response.headers.add_header('content-type', 'application/json', 
-                                         charset='utf-8')
-        # self.abort(500)
-        self.response.out.write('{"error":true}') 
-
-
 
 class PartEdit(BaseHandler):
-    """Handle part edits."""
+    """Handle part edits, adds when part_id == null."""
     def post(self, bom_id, part_id):
         """handle edit and delete requests."""
         self.response.headers.add_header('content-type', 'application/json', 
                                          charset='utf-8')
         bomfu = self.request.get('bomfu')
         if bomfu:
-            # part = Part.get_by_id(edit_p)
-            part = ndb.Key('Bom', long(bom_id), 'Part', long(part_id)).get()
+            if part_id == 'null':
+                # new part
+                part = Part.new(ndb.Key('Bom', long(bom_id)), '')
+            else:
+                # part = Part.get_by_id(edit_p)
+                part = ndb.Key('Bom', long(bom_id), 'Part', long(part_id)).get()
             if part:
                 # log.info(bomfu)
                 import bomfu_parser

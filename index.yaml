@@ -23,6 +23,12 @@ indexes:
 - kind: Part
   ancestor: yes
   properties:
+  - name: create_time
+    direction: desc
+
+- kind: Part
+  ancestor: yes
+  properties:
   - name: name
 
 - kind: Part
