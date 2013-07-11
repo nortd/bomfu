@@ -53,7 +53,7 @@ class AddTestBom(BaseHandler):
 
         bom = Bom.new('')
         bom.name = "test-" + str(bom.public_id)
-        bom.put()
+        bom._put()  # put without setting user
 
         for p in bom_parsed:
             part = bom.new_part(p[0])
@@ -76,7 +76,7 @@ class AddTestBom(BaseHandler):
                 part.subsystem_quantities.append(usage[0])
                 part.subsystem_names.append(usage[1])
                 part.subsystem_specificuses.append(usage[2])
-            part.put()
+            part._put()
 
         self.redirect(self.uri_for('bom-raw', public_id=bom.public_id))
 
@@ -151,7 +151,7 @@ class Edit(BaseHandler):
             bom = self.get_or_404(bom_id)
             if self.form.validate():
                 self.form.populate_obj(bom)
-                bom.put()
+                bom._put()
                 self.add_message("Changes saved!", 'success')
                 return self.redirect_to("bom-admin-edit", bom_id=bom_id)
             else:

@@ -11,7 +11,7 @@ from boilerplate.models import User
 from boilerplate.lib.basehandler import BaseHandler
 from boilerplate.lib.basehandler import user_required
 
-from web.models import Bom, Part
+from web.models import Bom, Part, AuthWriterError
 
 
 # logging system
@@ -90,23 +90,27 @@ def parse_and_add(bomfu, bom_id, part_ids=[]):
 
 class BomCreate(BaseHandler):
     """Creates new BOM."""
+
+    @user_required
     def get(self):
         bom = Bom.new('newbom')
         bom.name = 'bom-' + bom.public_id
-        bom.put()
-        time.sleep(0.5)  # give db some time to write
-        self.redirect(self.uri_for('bom-edit', public_id=bom.public_id)+'?new=1')
+        bom.put(self.user_id)
+        time.sleep(0.6)  # give db some time to write
+        self.add_message("New BOM created!", 'success')
+        return self.redirect_to('bom-edit', public_id=bom.public_id)
 
 
 
 class BomImport(BaseHandler):
     """Handler to import BOM from .bomfu file."""
 
+    @user_required
     def get(self):
         params = {}
         return self.render_template('bom_import.html', **params)
 
-
+    @user_required
     def post(self):
         bomfu = self.request.get('bomfu')
         if bomfu:
@@ -114,7 +118,7 @@ class BomImport(BaseHandler):
                                              charset='utf-8')
             bom = Bom.new('newbom')
             bom.name = 'bom-imported-' + bom.public_id
-            bom.put()
+            bom.put(self.user_id)
             ret = parse_and_add(bomfu, bom.key.id())
             if ret:  # fail
                 self.response.out.write(json.dumps({"error":ret})) 
@@ -128,6 +132,8 @@ class BomImport(BaseHandler):
 
 class BomDelete(BaseHandler):
     """Delete a BOM."""
+
+    @user_required
     def get(self, bom_id):
         # TODO:
         #   check user
@@ -142,10 +148,10 @@ class BomDelete(BaseHandler):
 
 class BomEditView(BaseHandler):
     """Show BOM, allow editing."""
+
+    @user_required
     def get(self, public_id):
         params = {}
-        if self.request.get('new'):
-            self.add_message('New BOM created!', 'success')
         bom = Bom.query(Bom.public_id == public_id).get()
         if bom:
             parts = Part.query(ancestor=bom.key).order(-Part.create_time).fetch()
@@ -203,11 +209,16 @@ class BomEditView(BaseHandler):
 
 
 class BomEditFields(BaseHandler):
+
+    @user_required
     def post(self, bom_id):
         name = self.request.get('name')
         public = self.request.get('public')
         bom = Bom.get_by_id(long(bom_id))
         if bom:
+            self.response.headers.add_header('content-type', 'application/json', 
+                                             charset='utf-8')
+            ret = 'false'
             if name:
                 bom.name = name
             if public:
@@ -216,10 +227,11 @@ class BomEditFields(BaseHandler):
                 elif public == 'false':
                     bom.public = False
             if name or public:
-                bom.put()
-            self.response.headers.add_header('content-type', 'application/json', 
-                                             charset='utf-8')
-            self.response.out.write('{"error":false}')
+                try:
+                    bom.put(self.user_id)
+                except AuthWriterError as ex:
+                    ret = str(ex)
+            self.response.out.write('{"error":'+ret+'}')
         else:
             self.abort(404)
 
@@ -227,6 +239,8 @@ class BomEditFields(BaseHandler):
 
 class PartEdit(BaseHandler):
     """Handle part edits, adds when part_id == null."""
+
+    @user_required
     def post(self, bom_id, part_id):
         """handle edit and delete requests."""
         self.response.headers.add_header('content-type', 'application/json', 
@@ -249,6 +263,8 @@ class PartEdit(BaseHandler):
 
 class PartDelete(BaseHandler):
     """Handle part deletes."""
+
+    @user_required
     def post(self, bom_id, part_id):
         self.response.headers.add_header('content-type', 'application/json', 
                                          charset='utf-8')

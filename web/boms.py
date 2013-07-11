@@ -3,6 +3,7 @@ import webapp2
 from web.models import Bom
 from boilerplate import forms
 from boilerplate.handlers import BaseHandler
+from boilerplate.lib.basehandler import user_required
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 from google.appengine.api import users
@@ -12,6 +13,8 @@ from wtforms import fields
 
 
 class BomsHandler(BaseHandler):
+
+    @user_required
     def get(self):
         p = self.request.get('p')
         q = self.request.get('q')

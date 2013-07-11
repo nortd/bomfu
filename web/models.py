@@ -9,6 +9,32 @@ from boilerplate.models import User
 
 
 
+
+class AuthError(Exception):
+    """Exception raised for ungranted data-access."""
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return "AuthError: %s " % self.msg
+
+class AuthReaderError(AuthError):
+    """Exception raised for ungranted data-access."""
+    def __str__(self):
+        return "AuthReaderError: %s " % self.msg
+
+class AuthWriterError(AuthError):
+    """Exception raised for ungranted data-access."""
+    def __str__(self):
+        return "AuthWriterError: %s " % self.msg
+
+class AuthOwnerError(AuthError):
+    """Exception raised for ungranted data-access."""
+    def __str__(self):
+        return "AuthOwnerError: %s " % self.msg
+
+
+
 class PublicBomIdCounter(ndb.Model):
   bomid = ndb.IntegerProperty()
   
@@ -55,9 +81,40 @@ class Bom(ndb.Model):
                   )
 
 
-    def put(self):
+    def put(self, user_id):
+        """Save, check/set permissions.
+
+        To edit a bom the user must have owner or writer permission.
+        A bom without permissions set will get "owned" by this user.
+
+        AuthWriteError will get raised if user is not owner or writer.
+        """
         if self.frozen:
-            return
+            raise AuthWriterError("bom is frozen")
+        if not user_id:
+            raise AuthWriterError("invalid user")
+        # check/set owner/writer
+        user_key = ndb.Key('User', long(user_id))
+        qry = User2Bom.query(User2Bom.user_key == user_key, ancestor=self.key)
+        ref = qry.get()
+        if ref:
+            if ref.role == "owner" or ref.role == "writer":
+                # permission granted, edit bom
+                self._put()
+            else:
+                # permission declined, do not edit bom
+                raise AuthWriterError("user not allowed to write this bom")
+        else:
+            # create owner ref, create bom
+            self._put(user_key)
+
+    def _put(self, user_key=None):
+        """Save bom with cached properties.
+
+        If user_key is given, make it owner.
+        """
+        if self.frozen:
+            raise AuthWriterError("bom is frozen")
 
         # like_count_cached
         qry = User2Bom.query(User2Bom.like_flag == True, ancestor=self.key)
@@ -72,6 +129,10 @@ class Bom(ndb.Model):
         self.rough_count_cached = qry.count()
 
         super(Bom, self).put()
+
+        if user_key:
+            # make this user an owner
+            User2Bom.new(user_key, self.key, "owner").put()
 
 
     def delete(self):
@@ -193,8 +254,8 @@ class User2Bom(ndb.Model):
     rough_flag = ndb.BooleanProperty(default=False)
 
     @classmethod
-    def new(cls, bom_key, role):
-        return cls(parent=bom_key, bom_key=bom_key, role=role)
+    def new(cls, user_key, bom_key, role):
+        return cls(parent=bom_key, bom_key=bom_key, user_key=user_key, role=role)
 
 
 

@@ -27,17 +27,6 @@ log.basicConfig(level=log.DEBUG)
 
 
 
-class BomsHandler(BaseHandler):
-    """Show all BOMs."""
-
-    def get(self):
-        params = {
-            # "bom_id" : bom_id
-            }
-        return self.render_template('bom_import.html', **params)
-
-
-
 class BomBuildHandler(BaseHandler):
     """Show BOM by subsystem."""
     def get(self, public_id):

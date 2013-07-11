@@ -13,6 +13,7 @@ import logging
 import random
 import re
 import json
+import time
 
 # related third party imports
 import webapp2
@@ -776,6 +777,7 @@ class RegisterHandler(RegisterBaseHandler):
             username=username, name=name, last_name=last_name, email=email,
             ip=self.request.remote_addr, country=country
         )
+        time.sleep(0.6)  # give db some time to write
 
         if not user[0]: #user is a tuple
             if "username" in str(user[1]):
