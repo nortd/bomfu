@@ -50,7 +50,8 @@ class Bom(ndb.Model):
     @classmethod
     def new(cls, name):
         return cls(public_id=str(PublicBomIdCounter.getNextId()),
-                   uuid=str(uuid.uuid4())
+                   uuid=str(uuid.uuid4()),
+                   name=name
                   )
 
 

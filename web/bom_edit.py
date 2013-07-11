@@ -3,6 +3,7 @@
 """ Bom edit handling."""
 
 import json
+import time
 import logging as log
 from google.appengine.ext import ndb
 
@@ -13,29 +14,138 @@ from boilerplate.lib.basehandler import user_required
 from web.models import Bom, Part
 
 
-import webapp2
-from wtforms import fields
-from wtforms import Form
-from wtforms import validators
-from boilerplate.forms import BaseForm
-
-FIELD_MAXLENGTH = 50 # intended to stop maliciously long input
-
 # logging system
 log.basicConfig(level=log.DEBUG)
 # debug, info, warn, error, fatal, basicConfig
 
 
 
-class EditBomForm(BaseForm):
-    name = fields.TextField('Name', [validators.required(), validators.Length(max=FIELD_MAXLENGTH)])
-    public = fields.BooleanField('Public', [validators.required()])
+def parse_and_add(bomfu, bom_id, part_ids=[]):
+    """Parse a bomfu string and add Parts.
+
+    If part_ids are specified only these parts are edited in place
+    with any bomfu data. Parsing is limited to len(part_ids).
+
+    Returns: error string on error, otherwise None
+    """
+    import bomfu_parser
+    try:
+        if part_ids:
+            # limit parsing to how many part_ids we got
+            bom_json = bomfu_parser.parse(bomfu, len(part_ids))
+        else:
+            bom_json = bomfu_parser.parse(bomfu)
+    except bomfu_parser.ParseError as ex:
+        return str(ex)
+    i = 0
+    for p in bom_json:
+        if part_ids:
+            if i >= len(part_ids):
+                return "Parse error, got more part data than part_ids."
+            # edit part
+            part = ndb.Key('Bom', long(bom_id), 'Part', long(part_ids[i])).get()
+            i += 1
+        else:
+            # add part
+            part = Part.new(ndb.Key('Bom', long(bom_id)), '')
+
+        if part:
+            part.name = p[0]
+            part.quantity_units = p[1]
+            part.part_group = p[2]
+            part.note_list = p[3]
+            part.designator_list = p[4]
+            part.manufacturer_names = []
+            part.manufacturer_partnums = []
+            for manu in p[5]:
+                part.manufacturer_names.append(manu[0])
+                part.manufacturer_partnums.append(manu[1])
+            part.supplier_names = []
+            part.supplier_ordernums = []
+            part.supplier_packagecounts = []
+            part.supplier_currencies = []
+            part.supplier_countries = []
+            part.supplier_prices = []
+            part.supplier_urls = []
+            for supplier in p[6]:
+                part.supplier_names.append(supplier[0])
+                part.supplier_ordernums.append(supplier[1])
+                part.supplier_packagecounts.append(supplier[2])
+                part.supplier_currencies.append(supplier[3])
+                part.supplier_countries.append(supplier[4])
+                part.supplier_prices.append(supplier[5])
+                part.supplier_urls.append(supplier[6])
+            part.subsystem_quantities = []
+            part.subsystem_names = []
+            part.subsystem_specificuses = []
+            for subsys in p[7]:
+                part.subsystem_quantities.append(subsys[0])
+                part.subsystem_names.append(subsys[1])
+                part.subsystem_specificuses.append(subsys[2])
+            part.put()
+        else:
+            return "Failed to instance part."
+
+
+
+class BomCreate(BaseHandler):
+    """Creates new BOM."""
+    def get(self):
+        bom = Bom.new('newbom')
+        bom.name = 'bom-' + bom.public_id
+        bom.put()
+        time.sleep(0.5)  # give db some time to write
+        self.redirect(self.uri_for('bom-edit', public_id=bom.public_id)+'?new=1')
+
+
+
+class BomImport(BaseHandler):
+    """Handler to import BOM from .bomfu file."""
+
+    def get(self):
+        params = {}
+        return self.render_template('bom_import.html', **params)
+
+
+    def post(self):
+        bomfu = self.request.get('bomfu')
+        if bomfu:
+            self.response.headers.add_header('content-type', 'application/json', 
+                                             charset='utf-8')
+            bom = Bom.new('newbom')
+            bom.name = 'bom-imported-' + bom.public_id
+            bom.put()
+            ret = parse_and_add(bomfu, bom.key.id())
+            if ret:  # fail
+                self.response.out.write(json.dumps({"error":ret})) 
+            else:    # ok
+                self.response.out.write('{"error":false, "public_id":"'+bom.public_id+'"}')
+            # self.redirect(self.uri_for('bom-edit', public_id=bom.public_id))
+        else:
+            self.abort(501)
+
+
+
+class BomDelete(BaseHandler):
+    """Delete a BOM."""
+    def get(self, bom_id):
+        # TODO:
+        #   check user
+        bom = Bom.get_by_id(long(bom_id))
+        if bom:
+            bom.delete()
+            time.sleep(0.5)  # give db some time to write
+            self.redirect(self.uri_for('boms'))
+        else:
+            self.abort(404)
 
 
 class BomEditView(BaseHandler):
-    """Show BOM by PartGroup, allow editing."""
+    """Show BOM, allow editing."""
     def get(self, public_id):
         params = {}
+        if self.request.get('new'):
+            self.add_message('New BOM created!', 'success')
         bom = Bom.query(Bom.public_id == public_id).get()
         if bom:
             parts = Part.query(ancestor=bom.key).order(-Part.create_time).fetch()
@@ -91,11 +201,6 @@ class BomEditView(BaseHandler):
             self.abort(404)
 
 
-    @webapp2.cached_property
-    def form(self):
-        return EditBomForm(self)
-
-
 
 class BomEditFields(BaseHandler):
     def post(self, bom_id):
@@ -130,61 +235,13 @@ class PartEdit(BaseHandler):
         if bomfu:
             if part_id == 'null':
                 # new part
-                part = Part.new(ndb.Key('Bom', long(bom_id)), '')
+                ret = parse_and_add(bomfu, bom_id)
             else:
-                # part = Part.get_by_id(edit_p)
-                part = ndb.Key('Bom', long(bom_id), 'Part', long(part_id)).get()
-            if part:
-                # log.info(bomfu)
-                import bomfu_parser
-                try:
-                    bom_json = bomfu_parser.parse(bomfu, 1)
-                except bomfu_parser.ParseError as ex:
-                    ret = {"error":str(ex)}
-                    self.response.out.write(json.dumps(ret)) 
-                    return
-                if len(bom_json) == 1:
-                    p = bom_json[0]
-                    # write to part
-                    part.name = p[0]
-                    part.quantity_units = p[1]
-                    part.part_group = p[2]
-                    part.note_list = p[3]
-                    part.designator_list = p[4]
-                    part.manufacturer_names = []
-                    part.manufacturer_partnums = []
-                    for manu in p[5]:
-                        part.manufacturer_names.append(manu[0])
-                        part.manufacturer_partnums.append(manu[1])
-                    part.supplier_names = []
-                    part.supplier_ordernums = []
-                    part.supplier_packagecounts = []
-                    part.supplier_currencies = []
-                    part.supplier_countries = []
-                    part.supplier_prices = []
-                    part.supplier_urls = []
-                    for supplier in p[6]:
-                        part.supplier_names.append(supplier[0])
-                        part.supplier_ordernums.append(supplier[1])
-                        part.supplier_packagecounts.append(supplier[2])
-                        part.supplier_currencies.append(supplier[3])
-                        part.supplier_countries.append(supplier[4])
-                        part.supplier_prices.append(supplier[5])
-                        part.supplier_urls.append(supplier[6])
-                    part.subsystem_quantities = []
-                    part.subsystem_names = []
-                    part.subsystem_specificuses = []
-                    for subsys in p[7]:
-                        part.subsystem_quantities.append(subsys[0])
-                        part.subsystem_names.append(subsys[1])
-                        part.subsystem_specificuses.append(subsys[2])
-                    part.put()
-                    self.response.out.write('{"error":false}') 
-                else:
-                    ret = {"error":"Failed to parse bomfu data: %s" % bomfu}
-                    self.response.out.write(json.dumps(ret)) 
+                ret = parse_and_add(bomfu, bom_id, [part_id])
+            if ret:
+                self.response.out.write(json.dumps({"error":ret})) 
             else:
-                self.abort(404)
+                self.response.out.write('{"error":false}')
         else:
             self.abort(501)
 

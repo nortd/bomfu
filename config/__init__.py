@@ -15,7 +15,7 @@ else:
     from config.testing import config
 
 
-config['app_name'] = 'BOMFU'
+config['app_name'] = 'BomFu'
 config['enable_federated_login'] = False
 
 # disable multi-language

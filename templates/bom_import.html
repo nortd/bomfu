@@ -6,12 +6,67 @@
 
 {% block content %}
 
-<form method="post" action="/import">
-	<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-	<textarea rows="20" class="span12"></textarea>
-	<button class="btn btn-large btn-primary" type="submit">Import</button>
-	<button class="btn btn-large" type="button">Old-school Import</button>
-	<button class="btn btn-large" type="button">Cancel</button>
-</form>
+<div class="row">
+    <div class="span12">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <textarea id="bomfu" rows="20" style="box-sizing:border-box" class="span12"></textarea>
+    </div>
+    <div class="span12">
+        <div id="error" class="alert alert-danger error" style="display:none"></div>
+    </div>
+    <div class="span12">
+        <a id="import" class="btn btn-large btn-primary" href="#">Import BomFu</a>
+        <a id="cancel" class="btn btn-large" href="{{ uri_for('boms') }}">Cancel</a>
+    </div>
+</div>
 
+{% endblock %}
+
+
+{% block mediaJS %}
+<script type="text/javascript">
+$(document).ready(function(){
+    // import button
+    $('a#import').click(function(){
+        var button = $(this);
+        button.addClass('btn-warning');
+        var bomfu = $('textarea#bomfu').val();
+        $.ajax({
+            type: "POST",
+            url: "{{ uri_for('bom-import') }}",
+            data: {'_csrf_token':'{{ csrf_token() }}',
+                   'bomfu':bomfu},
+            dataType: 'json',
+            success: function (data) {
+                button.removeClass('btn-warning');
+                if (data.error == false) {
+                    // ok
+                    button.removeClass('btn-warning');
+                    button.removeClass('btn-danger');
+                    button.addClass('btn-success');
+                    $('div#error').text('');
+                    $('div#error').hide();
+                    setTimeout(function(){
+                        button.removeClass('btn-success');
+                        window.location.replace('/b/'+data.public_id+'/edit');
+                        // window.location.href = "";
+                    }, 500);
+                } else {
+                    // failed with error
+                    $('div#error').text(data.error);
+                    $('div#error').show();
+                    button.addClass('btn-danger');
+                    button.removeClass('btn-warning');
+                }
+            },
+            error: function (data) {
+                // failed
+                button.addClass('btn-danger');
+                button.removeClass('btn-warning');
+            }
+        });
+        return false;
+    });
+});  // ready
+</script>
 {% endblock %}

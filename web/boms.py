@@ -21,8 +21,8 @@ class BomsHandler(BaseHandler):
 
         if q:
             qry = Bom.query(ndb.OR(Bom.public_id == q,
-                                          Bom.name == q,
-                                          Bom.tag_name == q))
+                                   Bom.name == q,
+                                   Bom.tag_name == q))
         else:
             qry = Bom.query()
 

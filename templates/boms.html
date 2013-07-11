@@ -27,6 +27,7 @@
                 {{ name }}
             </th>
             {% endfor %}
+            <th class="span1">&nbsp;</th>
         </tr>
     </thead>
     {% for bom in boms %}
@@ -35,7 +36,7 @@
             <div class="btn-group">
               <a class="btn btn-mini" href="{{ uri_for('bom-build', public_id=bom.public_id) }}"><i class="icon-wrench"></i>build</a>
               <a class="btn btn-mini" href="{{ uri_for('bom-order', public_id=bom.public_id, currency='USD') }}"><i class="icon-shopping-cart"></i>order</a>
-              <a class="btn btn-mini" href="{{ uri_for('bom-edit-view', public_id=bom.public_id) }}"><i class="icon-pencil"></i>edit</a>
+              <a class="btn btn-mini" href="{{ uri_for('bom-edit', public_id=bom.public_id) }}"><i class="icon-pencil"></i>edit</a>
               <a class="btn btn-mini" href="{{ uri_for('bom-raw', public_id=bom.public_id) }}">raw</a>
             </div>
         </td>
@@ -44,6 +45,9 @@
             {{ getattr(bom, attr) }}
         </td>
         {% endfor %}
+        <td>
+            <a class="icon" href="{{ uri_for('bom-delete', bom_id=bom.key.id()) }}"><i class="icon-trash"></i></a>
+        </td>
     </tr>
     {% endfor %}
 </table>
@@ -59,4 +63,14 @@
   <li class='disabled'><span>Next</span></li>
   {% endif %}
 </ul>
+
+<hr>
+
+<div class="row">
+  <div class="span12">
+    <a class="btn" href="{{ uri_for('bom-create') }}">New BOM</a>
+    <a class="btn" href="{{ uri_for('bom-import') }}">Import BOM</a>
+  </div>
+</div>
+
 {% endblock %}

@@ -61,9 +61,8 @@
                 <div class="nav-collapse">
                     <ul class="nav pull-right">
                         <li><a href="/b">My BOMs</a></li>
-                        <li><a href="/create">Create</a></li>
-                        <li><a href="/help">Help</a></li>
-                        <li><a href="/login">Login</a></li>                        
+                        <li><a href="{{ uri_for('bom-create') }}">New</a></li>
+                        <li><a href="{{ uri_for('bom-import') }}">Import</a></li>
                         {% if locale_iso %}
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">

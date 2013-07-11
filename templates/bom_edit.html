@@ -13,7 +13,7 @@ spellcheck="false"
 
 
 
-<table class="table table-hover">
+<table class="table">
     <tr>
         <td class="" style="padding-top:24px; text-align:right">Name:</td>
         <td>
@@ -47,8 +47,7 @@ spellcheck="false"
             <textarea class="span10" style="height:200px; padding-top:9.5px; margin:0"></textarea>
         </form>
         <div class="content" style="font-size:24px; font-weight:bold; margin-top:6px">Parts</div>
-        <div class="alert alert-danger error" style="display:none; margin-top:10px; margin-bottom:0px">
-        </div>
+        <div class="alert alert-danger error" style="display:none; margin-top:10px; margin-bottom:0px"></div>
         <div class="alert alert-info help" style="display:none; margin-top:10px; margin-bottom:0px">
             <h3>Help</h3>
             <pre class="helptxt_slot"></pre>
@@ -105,7 +104,6 @@ part_name   group
 
 {% block mediaJS %}
 <script type="text/javascript">
-var helptxt = 
 $(document).ready(function(){
     // set form fields
     $('input#name_field').val("{{bom.name}}");
@@ -115,8 +113,13 @@ $(document).ready(function(){
         $('input#public_check').prop('checked', false);
     }
     // name field
-    $('input#name_field').keydown(function(){
+    $('input#name_field').keydown(function(event){
+        if (event.which == 13 || event.keyCode == 13) {
+            $('a#name_field').trigger('click');
+            return false;
+        }
         $('a#name_field').show();
+        return true;
     });
     // name field save button
     $('a#name_field').click(function(){
@@ -140,7 +143,7 @@ $(document).ready(function(){
                     row.addClass('success');
                     setTimeout(function(){
                         row.removeClass('success');
-                    }, 1000);
+                    }, 500);
                 } else {
                     button.addClass('btn-danger');
                     button.removeClass('btn-warning');
@@ -172,7 +175,7 @@ $(document).ready(function(){
                     row.addClass('success');
                     setTimeout(function(){
                         row.removeClass('success');
-                    }, 1000);
+                    }, 500);
                 } else {
                     check.prop('checked', !checkstate);
                     row.addClass('warning');
@@ -253,7 +256,7 @@ $(document).ready(function(){
                     // button.siblings('a.edit').addClass('btn-success')
                     // setTimeout(function(){
                     //     button.siblings('a.edit').removeClass('btn-success')
-                    // }, 1000);
+                    // }, 500);
                     // // error box cleanup
                     // var errordiv = button.parent().siblings('div.add_part').children('.error');
                     // errordiv.text('');
@@ -396,7 +399,7 @@ $(document).ready(function(){
                     button.siblings('a.edit').addClass('btn-success')
                     setTimeout(function(){
                         button.siblings('a.edit').removeClass('btn-success')
-                    }, 1000);
+                    }, 500);
                     // error box cleanup
                     var errordiv = button.parent().siblings('div.part').children('.error');
                     errordiv.text('');

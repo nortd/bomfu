@@ -26,34 +26,6 @@ log.basicConfig(level=log.DEBUG)
 
 
 
-class BomCreateHandler(BaseHandler):
-    """Handler to create new BOMs."""
-
-    def get(self):
-        params = {
-            # "bom_id" : bom_id
-            }
-        return self.render_template('bom_create.html', **params)
-
-
-
-class BomImportHandler(BaseHandler):
-    """Handler to import BOM from .bomfu file."""
-
-    def get(self):
-        params = {
-            # "bom_id" : bom_id
-            }
-        return self.render_template('bom_import.html', **params)
-
-
-    def post(self):
-        new_bom = Bom.new()
-        new_bom.name = "aBom-" + str(new_bom.public_id)
-        new_bom.put()
-        self.redirect(new_bom.get_url())
-        self.redirect(self.uri_for('bom-build', public_id=new_bom.public_id))
-
 
 class BomsHandler(BaseHandler):
     """Show all BOMs."""
