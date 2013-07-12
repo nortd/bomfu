@@ -1,6 +1,9 @@
 {% extends base_layout %}
 
 {% block header_title %}
+    <div class="pull-right">
+        <a class="btn btn-small" href="{{ uri_for('bom-delete', bom_id=bom.key.id()) }}" title="delete bom"><i class="icon-trash"></i></a>
+    </div>
     <i class="icon-pencil"></i> Edit BOM
 {% endblock %}
 

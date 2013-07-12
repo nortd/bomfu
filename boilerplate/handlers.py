@@ -1491,13 +1491,13 @@ class EmailChangedCompleteHandler(BaseHandler):
             self.redirect_to('edit-profile')
 
 
-class HomeRequestHandler(RegisterBaseHandler):
-    """
-    Handler to show the home page
-    """
+# class HomeRequestHandler(RegisterBaseHandler):
+#     """
+#     Handler to show the home page
+#     """
 
-    def get(self):
-        """ Returns a simple HTML form for home """
-        params = {}
-        return self.render_template('home.html', **params)
+#     def get(self):
+#         """ Returns a simple HTML form for home """
+#         params = {}
+#         return self.render_template('home.html', **params)
 

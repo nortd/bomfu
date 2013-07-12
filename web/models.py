@@ -1,6 +1,8 @@
 
 import math
 import uuid
+from collections import OrderedDict
+
 from google.appengine.ext import ndb
 from google.appengine.ext import blobstore
 from google.appengine.api.images import get_serving_url
@@ -193,12 +195,11 @@ class Bom(ndb.Model):
     def get_parts_by_supplier(self, currency):
         """Return list of Parts by supplier and currency, ordered by name.
 
-        The format is a list of tuples:
-        [(supplier1, [part,part,..]), (supplier2, [part,part,..]), ]
+        Returns: OrderedDict, suppliers are keys, values are part lists.
         FIXME: The Part query is a bit inefficient when the parts have
         many alternative suppliers. Too many queries, too many filtered out.
         """
-        by_supplier = []
+        by_supplier = OrderedDict()
         parts_collected = set()
         qry = Suppliers.query(ancestor=self.key).order(Suppliers.name)
         for supplier in qry.iter():
@@ -215,8 +216,9 @@ class Bom(ndb.Model):
                     if part.supplier_currencies[i] == currency:
                         # supplier actually matches currency
                         parts_collected.add(part.uuid)
-                        partlist.append(part)
-            by_supplier.append((supplier.name,partlist))
+                        if not by_supplier.has_key(supplier.name):
+                            by_supplier[supplier.name] = []
+                        by_supplier[supplier.name].append(part)
         return by_supplier
 
 
@@ -224,18 +226,18 @@ class Bom(ndb.Model):
         """Return list of Parts by subsystem, ordered by name.
 
         One part can be shown under multiple subsystems.
-        The format is a list of tuples:
-        [(subsys1, [part,part,..]), (subsys2, [part,part,..]), ]
+        Returns: OrderedDict, suppliers are keys, values are part lists.
         """
-        by_subsystem = []
+        by_subsystem = OrderedDict()
         qry = Subsystems.query(ancestor=self.key).order(Subsystems.name)
         for subsys in qry.iter():
             partlist = []
             q = Part.query(Part.subsystem_names == subsys.name, ancestor=self.key)\
                     .order(Part.name)
             for part in q.iter():
-                partlist.append(part)
-            by_subsystem.append((subsys.name,partlist))
+                if not by_subsystem.has_key(subsys.name):
+                    by_subsystem[subsys.name] = []
+                by_subsystem[subsys.name].append(part)
         return by_subsystem
 
 
@@ -313,6 +315,9 @@ class Part(ndb.Model):
 
         Refs and creates the following as necessary:
         partgroup, manufacturer, suppier, subsystem
+
+        FIXME: seems to add multiples of:
+        PartGroups, Manufacturers, Suppliers, Subsystems
         """
 
         # quantity_cached

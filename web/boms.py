@@ -59,10 +59,10 @@ class BomsHandler(BaseHandler):
         self.view.q = q
         
         params = {
-            "list_columns": [('public_id', 'Public ID'),
-                             ('name', 'BOM Name'), 
-                             ('tag_name', 'Tag Name'),
-                             ('public', 'public')],
+            "list_columns": [('name', 'BOM Name'), 
+                             ('public_id', 'Public ID'),
+                             ('public', 'public'),
+                             ('change_time', 'Last Updated')],
             "boms" : boms,
             "count" : qry.count()
         }

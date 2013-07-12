@@ -5,14 +5,14 @@ from boilerplate import forms
 from boilerplate.handlers import BaseHandler
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
-from google.appengine.api import users
+from google.appengine.api import users as googleusers
 from collections import OrderedDict, Counter
 from wtforms import fields
 
 
 class Logout(BaseHandler):
     def get(self):
-        self.redirect(users.create_logout_url(dest_url=self.uri_for('home')))
+        self.redirect(googleusers.create_logout_url(dest_url=self.uri_for('home')))
 
 
 class Geochart(BaseHandler):
@@ -82,6 +82,10 @@ class List(BaseHandler):
             "users" : users,
             "count" : qry.count()
         }
+
+        # FIXME: admin_user should probably go into BaseHandler
+        params['admin_user'] = googleusers.is_current_user_admin()
+        
         return self.render_template('admin/users.html', **params)
 
 

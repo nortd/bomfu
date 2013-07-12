@@ -7,6 +7,7 @@ import traceback
 import sys
 # related third party imports
 import webapp2
+from google.appengine.api import users as googleusers
 from google.appengine.api.users import NotAllowedError
 from webapp2_extras import jinja2
 from webapp2_extras import auth

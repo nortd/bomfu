@@ -10,6 +10,7 @@ from web.boms import BomsHandler
 from web.bom_edit import BomCreate, BomImport, BomEditView, \
                          BomEditFields, PartEdit, PartDelete, \
                          BomDelete
+from web.bom_view import BomBuildHandler, BomOrderHandler, BomRawHandler
 
 secure_scheme = 'https'
 
@@ -18,9 +19,9 @@ _routes = [
     RedirectRoute('/b', BomsHandler, name='boms', strict_slash=True),
     RedirectRoute('/b/create', BomCreate, name='bom-create', strict_slash=True),
     RedirectRoute('/b/import', BomImport, name='bom-import', strict_slash=True),
-    RedirectRoute('/b/<public_id>', handlers.BomBuildHandler, name='bom-build', strict_slash=True),
-    RedirectRoute('/b/<public_id>/order/<currency>', handlers.BomOrderHandler, name='bom-order', strict_slash=True),
-    RedirectRoute('/b/<public_id>/raw', handlers.BomRawHandler, name='bom-raw', strict_slash=True),
+    RedirectRoute('/b/<public_id>', BomBuildHandler, name='bom-build', strict_slash=True),
+    RedirectRoute('/b/<public_id>/order/<currency>', BomOrderHandler, name='bom-order', strict_slash=True),
+    RedirectRoute('/b/<public_id>/raw', BomRawHandler, name='bom-raw', strict_slash=True),
     RedirectRoute('/b/<public_id>/edit', BomEditView, name='bom-edit', strict_slash=True),
     RedirectRoute('/b/<bom_id>/delete', BomDelete, name='bom-delete', strict_slash=True),
     # bom editing
@@ -31,6 +32,8 @@ _routes = [
     RedirectRoute('/secure/', handlers.SecureRequestHandler, name='secure', strict_slash=True),
     RedirectRoute('/_convert_bom', handlers.ConvertBomHandler, name='convert_bom', strict_slash=True),
     RedirectRoute('/_test_all_ui', handlers.TestAllUIHandler, name='test_all_ui', strict_slash=True),
+    # home
+    RedirectRoute('/', handlers.HomeRequestHandler, name='home', strict_slash=True)
 ]
 
 def get_routes():

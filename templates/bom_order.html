@@ -1,31 +1,13 @@
 {% extends base_layout %}
 
 {% block header_title %}
-    {% trans %}Secure Page{% endtrans %}
+    Order View
 {% endblock %}
 
 {% block content %}
-
-    <div class="alert">
-        <button class="close" data-dismiss="alert">×</button>
-        <strong>Warning!</strong> This is BOM order page.
-    </div>
-
-    <table>
-        <tr>
-        <td>
-            Mobile:
-            <span class="label {% if is_mobile %}label-success{% endif %}">{{ is_mobile }}</span>
-        </td>
-        </tr>
-        <tr>
-        <td>
-            Bom ID:
-            <span class="label label-info">{{ bom_id }}</span>
-        </td>
-        </tr>
-    </table>
-
-
+    
+<pre>
+{{ raw }}
+</pre>
 
 {% endblock %}

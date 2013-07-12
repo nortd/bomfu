@@ -121,7 +121,7 @@ class BomImport(BaseHandler):
             bom.put(self.user_id, makeowner=True)
             ret = parse_and_add(bomfu, bom.key.id(), self.user_id)
             if ret:  # fail
-                bom.key.delete()
+                bom.key.delete()  # FIXME: refactor parse_and_add
                 self.response.out.write(json.dumps({"error":ret})) 
             else:    # ok
                 self.response.out.write('{"error":false, "public_id":"'+bom.public_id+'"}')
@@ -142,6 +142,7 @@ class BomDelete(BaseHandler):
         if bom:
             bom.delete()
             time.sleep(0.5)  # give db some time to write
+            self.add_message('BOM deleted!', 'success')
             self.redirect(self.uri_for('boms'))
         else:
             self.abort(404)

@@ -5,7 +5,7 @@ from boilerplate import forms
 from boilerplate.handlers import BaseHandler
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
-from google.appengine.api import users
+from google.appengine.api import users as googleusers
 from collections import OrderedDict, Counter
 from wtforms import fields
 
@@ -132,6 +132,10 @@ class List(BaseHandler):
             "boms" : boms,
             "count" : qry.count(),
         }
+
+        # FIXME: admin_user should probably go into BaseHandler
+        params['admin_user'] = googleusers.is_current_user_admin()
+
         return self.render_template('admin/boms.html', **params)
 
 
