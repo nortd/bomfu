@@ -165,7 +165,10 @@ def parse(bomstring, max_parts=None):
                         pricing_parts = pricing.split(' ')
                         if len(pricing_parts) == 2:
                             location = pricing_parts[0]
-                            amount = float(pricing_parts[1])
+                            try:
+                                amount = float(pricing_parts[1])
+                            except ValueError:
+                                raise ParseError(line_counter, line, "price must be a number")
                             location_parts = location.split('-')
                             if len(location_parts) == 1 or len(location_parts) == 2:
                                 currency = location_parts[0]
@@ -183,7 +186,10 @@ def parse(bomstring, max_parts=None):
                     # quantity   subsystem   specific_use
                     usage_components = auxline.split('   ')
                     if len(usage_components) == 3:
-                        quantity = float(usage_components[0].strip())
+                        try:
+                            quantity = float(usage_components[0].strip())
+                        except ValueError:
+                            raise ParseError(line_counter, line, "quantity must be a number")
                         subsystem = usage_components[1].strip()
                         specific_use = usage_components[2].strip()
                         part_entry_usages.append([quantity, subsystem, specific_use])

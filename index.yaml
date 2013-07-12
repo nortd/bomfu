@@ -15,6 +15,12 @@ indexes:
   - name: __key__
     direction: desc
 
+- kind: Bom
+  properties:
+  - name: owners
+  - name: __key__
+    direction: desc
+
 - kind: Part
   ancestor: yes
   properties:

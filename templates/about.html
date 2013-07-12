@@ -1,0 +1,34 @@
+{% extends base_layout %}
+
+{% block header_title_lead %}{% endblock %}
+
+{% block content %}
+
+<div class="hero-unit">
+	<h1>About BomFu</h1>
+    <p class="lead">
+        BomFu is the kung-fu of <i>Bill of Materials</i>. It's both a website and an open file format. The idea is BOMs can be beautifully shared here but also created offline, emailed, and script-generated.
+    </p>
+    <p class="lead">
+        BomFu solves typical BOM requirements like providing multiple views to the same data, e.g. order/build views. It also tackles more advanced challenges like alternative supplier ranking and multi-country, multi-currency support.
+    </p>
+    <p class="lead">
+        The file format is completely human editable and you are encouraged to write your BOMs in a plain text editor. This makes it compatible to git-style versioning and storing right with your hardware projects. 
+    </p>
+    <p class="lead">
+        The file format is also very easy to generate and parse. This allows for 
+        deriving BOMs from CAD files and other primary sources.
+    </p>
+</div>
+
+
+{% endblock %}
+
+{% block mediaJS %}
+    <script type="text/javascript">
+        $().ready(function() {
+
+        });
+    </script>
+{% endblock %}
+

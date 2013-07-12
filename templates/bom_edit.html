@@ -18,7 +18,7 @@ spellcheck="false"
 
 <table class="table">
     <tr>
-        <td class="" style="padding-top:24px; text-align:right">Name:</td>
+        <td class="span2" style="padding-top:24px; text-align:right">Name:</td>
         <td>
             <input id="name_field" type="text" value="{{ bom.name }}" style="margin-top:11px">
             <a id="name_field" class="btn" href="#" style="display:none">Save</a>
@@ -35,9 +35,19 @@ spellcheck="false"
         <td></td>
     </tr>
     <tr>
-        <td class="span2" style="text-align:right">Last Updated:</td>
+        <td class="" style="text-align:right">Last Updated:</td>
         <td>
             {{ bom.change_time.strftime('%Y-%b-%d') }}
+        </td>
+    </tr>
+    <tr>
+        <td>&nbsp;</td>
+        <td style="padding-top:1.4em; padding-bottom:0">
+            <span class="badge" style="margin:3px; padding:0 6px 0 0"><span class="badge badge-info">*</span> <i>note</i> line</span>
+            <span class="badge" style="margin:3px; padding:0 6px 0 0"><span class="badge badge-info">#</span> <i>designator</i> line</span>
+            <span class="badge" style="margin:3px; padding:0 6px 0 0"><span class="badge badge-info">@</span> <i>manufacturer</i> line</span>
+            <span class="badge" style="margin:3px; padding:0 6px 0 0"><span class="badge badge-info">$</span> <i>supplier</i> line</span>
+            <span class="badge" style="margin:3px; padding:0 6px 0 0"><span class="badge badge-info">&lt;num&gt;</span> <i>usage</i> line</span>
         </td>
     </tr>
 </table>
@@ -98,8 +108,8 @@ part_name   group
    * note
    # designator
    @ manufacturer   part_num
-   $ supplier   order_num   currency price   url
-   quantity   subsystem   usage_dsecription
+   $ supplier   order_num   USD 100.00   url
+   4   subsystem   usage_dsecription
 </pre>
 
 
@@ -107,7 +117,7 @@ part_name   group
 
 {% block mediaJS %}
 <script type="text/javascript">
-$(document).ready(function(){
+$().ready(function(){
     // set form fields
     $('input#name_field').val("{{bom.name}}");
     if ("{{bom.public}}" == "True") {

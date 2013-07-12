@@ -29,15 +29,18 @@ log.basicConfig(level=log.DEBUG)
 
 
 
-class HomeRequestHandler(RegisterBaseHandler):
-    """
-    Handler to show the home page
-    """
-
+class Home(RegisterBaseHandler):
     def get(self):
-        """ Returns a simple HTML form for home """            
         params = {}
         return self.render_template('home.html', **params)
+
+
+
+class About(RegisterBaseHandler):
+    def get(self):
+        params = {}
+        return self.render_template('about.html', **params)
+
 
 
 

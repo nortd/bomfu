@@ -724,19 +724,19 @@ class LogoutHandler(BaseHandler):
 
     def get(self):
         if self.user:
-            message = _("You've signed out successfully. Warning: Please clear all cookies and logout "
-                        "of OpenId providers too if you logged in on a public computer.")
+            message = _("You've signed out successfully.")
             self.add_message(message, 'info')
 
         self.auth.unset_session()
-        # User is logged out, let's try redirecting to login page
-        try:
-            self.redirect(self.auth_config['login_url'])
-        except (AttributeError, KeyError), e:
-            logging.error("Error logging out: %s" % e)
-            message = _("User is logged out, but there was an error on the redirection.")
-            self.add_message(message, 'error')
-            return self.redirect_to('home')
+        return self.redirect_to('home')
+        # # User is logged out, let's try redirecting to login page
+        # try:
+        #     self.redirect(self.auth_config['login_url'])
+        # except (AttributeError, KeyError), e:
+        #     logging.error("Error logging out: %s" % e)
+        #     message = _("User is logged out, but there was an error on the redirection.")
+        #     self.add_message(message, 'error')
+        #     return self.redirect_to('home')
 
 
 class RegisterHandler(RegisterBaseHandler):
