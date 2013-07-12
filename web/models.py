@@ -68,6 +68,11 @@ class Bom(ndb.Model):
     tag_name = ndb.StringProperty()
     create_time = ndb.DateTimeProperty(auto_now_add=True)
     change_time = ndb.DateTimeProperty(auto_now=True)
+    # permissions
+    owners = ndb.KeyProperty(repeated=True)
+    writers = ndb.KeyProperty(repeated=True)
+    readers = ndb.KeyProperty(repeated=True)  # only relevant if not public
+    # voting
     like_count_cached = ndb.IntegerProperty()
     watch_count_cached = ndb.IntegerProperty()
     rough_count_cached = ndb.IntegerProperty()
@@ -81,7 +86,7 @@ class Bom(ndb.Model):
                   )
 
 
-    def put(self, user_id):
+    def put(self, user_id, makeowner=False):
         """Save, check/set permissions.
 
         To edit a bom the user must have owner or writer permission.
@@ -89,56 +94,47 @@ class Bom(ndb.Model):
 
         AuthWriteError will get raised if user is not owner or writer.
         """
-        if self.frozen:
-            raise AuthWriterError("bom is frozen")
         if not user_id:
             raise AuthWriterError("invalid user")
-        # check/set owner/writer
+        # check writer creds
         user_key = ndb.Key('User', long(user_id))
-        qry = User2Bom.query(User2Bom.user_key == user_key, ancestor=self.key)
-        ref = qry.get()
-        if ref:
-            if ref.role == "owner" or ref.role == "writer":
+        if makeowner:
+            if user_key not in self.owners:
+                self.owners.append(user_key)
+                self._put()
+        else:
+            if user_key in self.owners or user_key in self.writers:
                 # permission granted, edit bom
                 self._put()
             else:
                 # permission declined, do not edit bom
                 raise AuthWriterError("user not allowed to write this bom")
-        else:
-            # create owner ref, create bom
-            self._put(user_key)
 
-    def _put(self, user_key=None):
-        """Save bom with cached properties.
-
-        If user_key is given, make it owner.
-        """
+    def _put(self):
         if self.frozen:
             raise AuthWriterError("bom is frozen")
 
         # like_count_cached
-        qry = User2Bom.query(User2Bom.like_flag == True, ancestor=self.key)
+        qry = BomLikes.query(ancestor=self.key)
         self.like_count_cached = qry.count()
 
         # watch_count_cached
-        qry = User2Bom.query(User2Bom.watch_flag == True, ancestor=self.key)
-        self.watch_count_cached = qry.count()
+        qry = BomWatches.query(ancestor=self.key)
+        self.like_count_cached = qry.count()
 
         # rough_count_cached
-        qry = User2Bom.query(User2Bom.rough_flag == True, ancestor=self.key)
-        self.rough_count_cached = qry.count()
+        qry = BomRoughs.query(ancestor=self.key)
+        self.like_count_cached = qry.count()
 
         super(Bom, self).put()
-
-        if user_key:
-            # make this user an owner
-            User2Bom.new(user_key, self.key, "owner").put()
 
 
     def delete(self):
         # collect all dependant entities
         keys_to_del = []
-        keys_to_del.extend(User2Bom.query(ancestor=self.key).fetch(keys_only=True))
+        keys_to_del.extend(BomLikes.query(ancestor=self.key).fetch(keys_only=True))
+        keys_to_del.extend(BomWatches.query(ancestor=self.key).fetch(keys_only=True))
+        keys_to_del.extend(BomRoughs.query(ancestor=self.key).fetch(keys_only=True))
         keys_to_del.extend(Part.query(ancestor=self.key).fetch(keys_only=True))
         keys_to_del.extend(PartGroups.query(ancestor=self.key).fetch(keys_only=True))
         keys_to_del.extend(Manufacturers.query(ancestor=self.key).fetch(keys_only=True))
@@ -245,19 +241,31 @@ class Bom(ndb.Model):
 
 
 
-class User2Bom(ndb.Model):
+class BomLikes(ndb.Model):
     user_key = ndb.KeyProperty(kind=User, required=True)
     bom_key = ndb.KeyProperty(kind=Bom, required=True)
-    role = ndb.StringProperty(default="reader", choices=set(["owner", "writer", "reader"]))
-    like_flag = ndb.BooleanProperty(default=False)
-    watch_flag = ndb.BooleanProperty(default=False)
-    rough_flag = ndb.BooleanProperty(default=False)
 
     @classmethod
-    def new(cls, user_key, bom_key, role):
-        return cls(parent=bom_key, bom_key=bom_key, user_key=user_key, role=role)
+    def new(cls, user_key, bom_key):
+        return cls(parent=bom_key, bom_key=bom_key, user_key=user_key)
 
 
+class BomWatches(ndb.Model):
+    user_key = ndb.KeyProperty(kind=User, required=True)
+    bom_key = ndb.KeyProperty(kind=Bom, required=True)
+
+    @classmethod
+    def new(cls, user_key, bom_key):
+        return cls(parent=bom_key, bom_key=bom_key, user_key=user_key)
+
+
+class BomRoughs(ndb.Model):
+    user_key = ndb.KeyProperty(kind=User, required=True)
+    bom_key = ndb.KeyProperty(kind=Bom, required=True)
+
+    @classmethod
+    def new(cls, user_key, bom_key):
+        return cls(parent=bom_key, bom_key=bom_key, user_key=user_key)
 
 
 
@@ -300,7 +308,7 @@ class Part(ndb.Model):
                    uuid=str(uuid.uuid4())
                   )
 
-    def put(self):
+    def put(self, user_id):
         """Save and also set refs.
 
         Refs and creates the following as necessary:
@@ -361,7 +369,7 @@ class Part(ndb.Model):
             ndb.put_multi(items_to_put)
             super(Part, self).put()
             # update bom change_time
-            self.bom_key.get().put()
+            self.bom_key.get().put(user_id)
 
         # print '>>>>>>>', self, '<<<<<'
         put_in_transaction()

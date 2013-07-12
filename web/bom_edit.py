@@ -20,7 +20,7 @@ log.basicConfig(level=log.DEBUG)
 
 
 
-def parse_and_add(bomfu, bom_id, part_ids=[]):
+def parse_and_add(bomfu, bom_id, user_id, part_ids=[]):
     """Parse a bomfu string and add Parts.
 
     If part_ids are specified only these parts are edited in place
@@ -82,7 +82,7 @@ def parse_and_add(bomfu, bom_id, part_ids=[]):
                 part.subsystem_quantities.append(subsys[0])
                 part.subsystem_names.append(subsys[1])
                 part.subsystem_specificuses.append(subsys[2])
-            part.put()
+            part.put(user_id)
         else:
             return "Failed to instance part."
 
@@ -95,7 +95,7 @@ class BomCreate(BaseHandler):
     def get(self):
         bom = Bom.new('newbom')
         bom.name = 'bom-' + bom.public_id
-        bom.put(self.user_id)
+        bom.put(self.user_id, makeowner=True)
         time.sleep(0.6)  # give db some time to write
         self.add_message("New BOM created!", 'success')
         return self.redirect_to('bom-edit', public_id=bom.public_id)
@@ -118,9 +118,10 @@ class BomImport(BaseHandler):
                                              charset='utf-8')
             bom = Bom.new('newbom')
             bom.name = 'bom-imported-' + bom.public_id
-            bom.put(self.user_id)
-            ret = parse_and_add(bomfu, bom.key.id())
+            bom.put(self.user_id, makeowner=True)
+            ret = parse_and_add(bomfu, bom.key.id(), self.user_id)
             if ret:  # fail
+                bom.key.delete()
                 self.response.out.write(json.dumps({"error":ret})) 
             else:    # ok
                 self.response.out.write('{"error":false, "public_id":"'+bom.public_id+'"}')
@@ -249,9 +250,9 @@ class PartEdit(BaseHandler):
         if bomfu:
             if part_id == 'null':
                 # new part
-                ret = parse_and_add(bomfu, bom_id)
+                ret = parse_and_add(bomfu, bom_id, self.user_id)
             else:
-                ret = parse_and_add(bomfu, bom_id, [part_id])
+                ret = parse_and_add(bomfu, bom_id, self.user_id, [part_id])
             if ret:
                 self.response.out.write(json.dumps({"error":ret})) 
             else:

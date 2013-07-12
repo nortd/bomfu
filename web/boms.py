@@ -21,13 +21,15 @@ class BomsHandler(BaseHandler):
         c = self.request.get('c')
         forward = True if p not in ['prev'] else False
         cursor = Cursor(urlsafe=c)
+        user_key = ndb.Key('User', long(self.user_id))
 
         if q:
-            qry = Bom.query(ndb.OR(Bom.public_id == q,
-                                   Bom.name == q,
-                                   Bom.tag_name == q))
+            qry = Bom.query(Bom.owners == user_key,
+                            ndb.OR(Bom.public_id == q,
+                            Bom.name == q,
+                            Bom.tag_name == q))
         else:
-            qry = Bom.query()
+            qry = Bom.query(Bom.owners == user_key)
 
         PAGE_SIZE = 5
         if forward:
