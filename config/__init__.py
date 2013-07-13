@@ -18,6 +18,10 @@ else:
 config['app_name'] = 'BomFu'
 config['enable_federated_login'] = False
 
+config['developers'] = (
+    ('Stefan Hechenberger', 'stefan@nortd.com'),
+),
+
 # disable multi-language
 config['locales'] = []
 

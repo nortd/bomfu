@@ -92,7 +92,7 @@ config = {
 
 # fellas' list
 'developers' : (
-    ('Santa Klauss', 'snowypal@northpole.com'),
+    # ('Santa Klauss', 'snowypal@northpole.com'),
 ),
 
 # If true, it will write in datastore a log of every email sent
