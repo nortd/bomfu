@@ -4,7 +4,7 @@
     <div class="pull-right">
         <a class="btn btn-small" href="{{ uri_for('bom-delete', bom_id=bom.key.id()) }}" title="delete bom"><i class="icon-trash"></i></a>
     </div>
-    <i class="icon-pencil"></i> Edit BOM
+    {{ bom.name }}
 {% endblock %}
 
 {% block body_attr %}
@@ -14,12 +14,18 @@ spellcheck="false"
 
 {% block content %}
 
-
+<ul class="nav nav-tabs">
+    <li><a href="{{ uri_for('bom-build', public_id=public_id, currency=currency) }}"><i class="icon-wrench"></i> Build</a></li>
+    <li><a href="{{ uri_for('bom-order', public_id=public_id, currency=currency) }}"><i class="icon-shopping-cart"></i> Order</a></li>
+    {% if is_owner %}
+        <li class="active"><a href="#"><i class="icon-pencil"></i> Edit</a></li>
+    {% endif %}
+</ul>
 
 <table class="table">
     <tr>
-        <td class="span2" style="padding-top:24px; text-align:right">Name:</td>
-        <td>
+        <td class="span2" style="padding-top:24px; text-align:right; border-top:0">Name:</td>
+        <td style="border-top:0">
             <input id="name_field" type="text" value="{{ bom.name }}" style="margin-top:11px">
             <a id="name_field" class="btn" href="#" style="display:none">Save</a>
         </td>

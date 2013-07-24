@@ -200,7 +200,7 @@ class Bom(ndb.Model):
         many alternative suppliers. Too many queries, too many filtered out.
         """
         by_supplier = OrderedDict()
-        parts_collected = set()
+        parts_collected = set()  # probably redundant, not necessary
         qry = Suppliers.query(ancestor=self.key).order(Suppliers.name)
         for supplier in qry.iter():
             partlist = []
@@ -212,8 +212,14 @@ class Bom(ndb.Model):
                 # make sure each part is added only once
                 if part.uuid not in parts_collected:
                     # check if supplier_name matches currency
-                    i = part.supplier_names.index(supplier.name)
-                    if part.supplier_currencies[i] == currency:
+                    # looking for one pair where supplier and currency matches
+                    got_match = False
+                    for i in range(len(part.supplier_names)):
+                        if part.supplier_names[i] == supplier.name and \
+                        part.supplier_currencies[i] == currency:
+                            got_match = True
+                            break
+                    if got_match:
                         # supplier actually matches currency
                         parts_collected.add(part.uuid)
                         if not by_supplier.has_key(supplier.name):

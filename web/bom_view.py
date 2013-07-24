@@ -29,17 +29,16 @@ class BomBuildHandler(BaseHandler):
         params = {}
         bom = Bom.query(Bom.public_id == public_id).get()
         if bom:
-            raw = []
-            for subsys, parts in bom.get_parts_by_subsystem().iteritems():
-                raw.append(subsys + '\n')
-                for part in parts:
-                    raw.append('   '+ part.name + '\n')
-
-            params['raw'] = ''.join(raw)
+            params = {
+                "is_owner" : ndb.Key('User', long(self.user_id or 0)) in bom.owners,
+                "public_id": public_id,
+                "currency": "USD",
+                "bom": bom,
+                "by_subsystem": bom.get_parts_by_subsystem()
+            }
             return self.render_template('bom_build.html', **params)
         else:
             self.abort(404)
-
 
         # import lasersaur_bomfu_old
         # import bomfu_parser
@@ -83,13 +82,13 @@ class BomOrderHandler(BaseHandler):
         params = {}
         bom = Bom.query(Bom.public_id == public_id).get()
         if bom:
-            raw = []
-            for supplier, parts in bom.get_parts_by_supplier(currency).iteritems():
-                raw.append(supplier + '\n')
-                for part in parts:
-                    raw.append('   '+ part.name + '\n')
-
-            params['raw'] = ''.join(raw)
+            params = {
+                "is_owner" : ndb.Key('User', long(self.user_id or 0)) in bom.owners,
+                "public_id": public_id,
+                "currency": "USD",
+                "bom" : bom,
+                "by_supplier" : bom.get_parts_by_supplier(currency)
+            }
             return self.render_template('bom_order.html', **params)
         else:
             self.abort(404)

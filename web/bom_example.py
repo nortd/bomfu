@@ -50,6 +50,7 @@ class BomExample(BaseHandler):
         try:
             from web.bomfu_parser import parse
             bom_parsed = parse(example_simple)
+            # bom_parsed = parse(example)
         except bomfu_parser.ParseError as ex:
             self.add_message("%s" % ex, 'error')
 

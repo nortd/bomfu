@@ -1,16 +1,69 @@
 {% extends base_layout %}
 
 {% block header_title %}
-    Build View
+    {{ bom.name }}
 {% endblock %}
+
 
 {% block content %}
 
+<ul class="nav nav-tabs">
+	<li class="active"><a href="#"><i class="icon-wrench"></i> Build</a></li>
+	<li><a href="{{ uri_for('bom-order', public_id=public_id, currency=currency) }}"><i class="icon-shopping-cart"></i> Order</a></li>
+	{% if is_owner %}
+		<li><a href="{{ uri_for('bom-edit', public_id=public_id) }}"><i class="icon-pencil"></i> Edit</a></li>
+	{% endif %}
+</ul>
+
 <p>
-	Not quite done, but it's going to be amazing, so visual, so good looking!
+    Not quite done, but it's going to be amazing, so visual, so good looking!
 </p>
-<pre>
-{{ raw }}
-</pre>
+
+{% for subsys, parts in by_subsystem.iteritems() %}
+    <h3>{{ subsys }}</h3>
+    <table class="table table-striped table-condensed">
+        <tr>
+            <th class="span1">#</th>
+            <th class="span4">Name</th>
+            <th class="span3">Specific Use</th>
+            <th class="span2">Supplier</th>
+            <th class="span1">Order Number</th> 
+            <th class="span1">Price</th> 
+            <th class="span1">Total</th>
+        </tr>
+        {% for part in parts %}
+            <tr>
+                <td>{% if part.quantity_cached % 1 == 0 %}
+                        {{ "%.0f" % part.quantity_cached }}
+                    {% else %}
+                        {{ "%.2f" % part.quantity_cached }}
+                    {% endif %}
+                </td>
+                <td>{{ part.name }}</td>
+                <td></td>
+                <td>
+                    {% if part.supplier_names %}
+                        {{ part.supplier_names[0] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if part.supplier_ordernums %}
+                        {{ part.supplier_ordernums[0] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if part.supplier_prices %}
+                        {{ "%0.2f" % part.supplier_prices[0] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if part.supplier_prices %}
+                        {{ "%0.2f" % (part.supplier_prices[0] * part.quantity_cached) }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endfor %}
 
 {% endblock %}

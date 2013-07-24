@@ -200,8 +200,13 @@ class BomEditView(BaseHandler):
                                '   '+part.subsystem_specificuses[i]+
                                '\n')
                 rawparts.append({'id':part.key.id(), 'raw':''.join(raw)[:-1]})
-            params['rawparts'] = rawparts
-            params['bom'] = bom
+            params = {
+                "is_owner" : ndb.Key('User', long(self.user_id or 0)) in bom.owners,
+                "public_id": public_id,
+                "currency": "USD",
+                "bom" : bom,
+                "rawparts" : rawparts
+            }
             # prime form
             # self.form.process(obj=bom)
             return self.render_template('bom_edit.html', **params)
